@@ -59,7 +59,6 @@ class RatingCreatedNotification extends Notification implements ShouldQueue
             'user_id' => $this->rating->user_id,
         ];
     }
-
     /**
      * Get the mail representation of the notification.
      */
