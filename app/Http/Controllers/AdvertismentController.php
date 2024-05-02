@@ -176,6 +176,9 @@ class AdvertismentController extends Controller
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     public function store(Request $request)
     {
+        Log::debug("This function is add a new ad");
+        Log::debug("0");
+
         $validator = Validator::make($request->all(), [
             'title' => 'nullable|string',
             'importance' => 'nullable|string',
@@ -191,6 +194,8 @@ class AdvertismentController extends Controller
             'is_active' => 'nullable|boolean',
             'is_general' => 'nullable|boolean',
         ]);
+        Log::debug($validator->errors());
+        Log::debug("1");
 
         if ($validator->fails()) {
             return response()->json([
@@ -201,27 +206,33 @@ class AdvertismentController extends Controller
         }
 
         $validatedData = $validator->validated();
-        Log::debug("0");
+        Log::debug("2");
 
         if ($request->filled("image")) {
             $base64Image = $request->input('image');
-            Log::debug("1");
+            Log::debug("3");
 
             // Decode the base64 string into binary image data
+            $imageData = str_replace('data:image/jpeg;base64,', '', $base64Image);
+            $imageData = str_replace(' ', '+', $imageData);
             $imageData = base64_decode($base64Image);
 
             // $extension = pathinfo($base64Image, "png");
 
             // Generate a unique filename for the image
             $imageName = time() . '.' . "png";
-
+            // $imageName =  Str::random().'.'.$base64Image->getClientOriginalExtension();
             // Specify the storage path where you want to save the image
             // $storagePath = public_path('storage/ads' . $imageName);
-            $storagePath = storage_path('app/public/ads/' . $imageName);
-
+            // $storagePath = storage_path('app/public/ads/' . $imageName);
+            // $imageData->storePubliclyAs('ads', $imageName);
+            // if (!Storage::disk('public')->exists('ads')) {
+            //     return Storage::disk('public')->makeDirectory('ads'); // Create the folder if needed
+            // }
+            Storage::disk('public')->put('ads/' . $imageName, $imageData);
 
             // Save the image to the specified path
-            file_put_contents($storagePath, $imageData);
+            // file_put_contents($storagePath, $imageData);
             //  $request->file("image_link")->store("ads", "public");
 
             $imageUrl = asset('storage/ads/' . $imageName);
@@ -245,6 +256,7 @@ class AdvertismentController extends Controller
                 'is_general' => (bool) $validatedData['is_general'],
             ],
         );
+        Log::debug("4");
 
         return response()->json([
             'status' => true,
@@ -253,7 +265,6 @@ class AdvertismentController extends Controller
             // 'errors' => $validator->errors(),
         ]);
     }
-
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
@@ -298,15 +309,18 @@ class AdvertismentController extends Controller
         $ad = Advertisment::findOrFail($validatedData['ad_id']);
 
 
-        if ($ad->image) {
-            $oldImagePath = public_path('storage/ads/' . basename($ad->image));
-            if (file_exists($oldImagePath)) {
-                unlink($oldImagePath);
-            }
-        }
+
 
 
         if ($request->filled("image")) {
+
+            if ($ad->image) {
+                $oldImagePath = public_path('storage/ads/' . basename($ad->image));
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+            }
+
             $base64Image = $request->input('image');
             Log::debug("3");
 
@@ -320,10 +334,12 @@ class AdvertismentController extends Controller
 
             // Specify the storage path where you want to save the image
             // $storagePath = public_path('storage/ads' . $imageName);
-            $storagePath = storage_path('app/public/ads/' . $imageName);
+            // $storagePath = storage_path('app/public/ads/' . $imageName);
 
             // Save the image to the specified path
-            file_put_contents($storagePath, $imageData);
+            // file_put_contents($storagePath, $imageData);
+            Storage::disk('public')->put('ads/' . $imageName, $imageData);
+
             //  $request->file("image_link")->store("ads", "public");
 
             $imageUrl = asset('storage/ads/' . $imageName);
