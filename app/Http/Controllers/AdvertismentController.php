@@ -234,8 +234,8 @@ class AdvertismentController extends Controller
             // Save the image to the specified path
             // file_put_contents($storagePath, $imageData);
             //  $request->file("image_link")->store("ads", "public");
-
-            $imageUrl = asset('storage/ads/' . $imageName);
+            // $imageUrl = Storage::disk('public')->url('ads/' . $imageName);
+            $imageUrl = asset('public/ads/' . $imageName);
         }
 
 
