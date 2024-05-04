@@ -62,11 +62,11 @@ Route::post('admin/logout', [AdminController::class, "logout"]);
 */
 // Route::resource('advertisments', AdvertismentController::class);
 
-Route::post('advertisments/fetch', [AdvertismentController::class, "index"])->middleware(['auth:admin']);
+Route::post('advertisments/fetch', [AdvertismentController::class, "index"]);
 Route::post('advertisments/fetch-by-location', [AdvertismentController::class, "getAdvertisementsByLocation"]);
-Route::post('advertisment/store', [AdvertismentController::class, "store"])->middleware(['auth:admin']);
-Route::post('advertisment/update', [AdvertismentController::class, "update"])->middleware(['auth:admin']);
-Route::post('advertisment/delete', [AdvertismentController::class, "delete"])->middleware(['auth:admin']);
+Route::post('advertisment/store', [AdvertismentController::class, "store"]);
+Route::post('advertisment/update', [AdvertismentController::class, "update"]);
+Route::post('advertisment/delete', [AdvertismentController::class, "delete"]);
 
 /*
 |--------------------------------------------------------------------------

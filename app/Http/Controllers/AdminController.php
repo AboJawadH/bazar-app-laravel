@@ -133,6 +133,7 @@ class AdminController extends Controller
         // * the reason i am adding this admin in the auth function is to make it clear
         // * to laravel that i am dealing with the users of the model admin and not of
         // * the model user (the admin type user was defined in the config/auth file)
+
         if (auth('admin')->attempt([
             'email' => $validatedData["email"],
             'password' => $validatedData["password"],

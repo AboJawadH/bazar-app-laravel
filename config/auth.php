@@ -44,12 +44,12 @@ return [
 
         'sanctum' => [
             'driver' => 'sanctum',
-            'provider' => 'users', // This might still be appropriate for regular users
+            'provider' => 'users',
         ],
 
         'admin' => [
-            'driver' => 'sanctum', // Use Sanctum for admins
-            'provider' => 'admins', // Existing provider name (might need adjustment)
+            'driver' => 'session',
+            'provider' => 'admins', 
         ],
 
         // 'web' => [

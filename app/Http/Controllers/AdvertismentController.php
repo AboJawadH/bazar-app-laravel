@@ -233,9 +233,10 @@ class AdvertismentController extends Controller
 
             // Save the image to the specified path
             // file_put_contents($storagePath, $imageData);
-            //  $request->file("image_link")->store("ads", "public");
+            // $request->file("image_link")->store("ads", "public");
             // $imageUrl = Storage::disk('public')->url('ads/' . $imageName);
-            $imageUrl = asset('public/ads/' . $imageName);
+            // $imageUrl = asset('ads/' . $imageName);
+            $imagePath = "ads/" . $imageName;
         }
 
 
@@ -250,7 +251,7 @@ class AdvertismentController extends Controller
                 'country_name' => $validatedData['country_name'],
                 'post_id' => $validatedData['post_id'],
                 'post_title' => $validatedData['post_title'],
-                'image' => $imageUrl ?? null,
+                'image' => $imagePath ?? null,
                 'ads_link' => $validatedData['ads_link'],
                 'is_active' => (bool) $validatedData['is_active'],
                 'is_general' => (bool) $validatedData['is_general'],
