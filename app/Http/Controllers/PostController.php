@@ -511,6 +511,8 @@ class PostController extends Controller
             $base64Images = $request->input('medias');
 
             foreach ($base64Images as $base64Image) {
+
+
                 // Decode the base64 string into binary image data
                 $imageData = base64_decode($base64Image);
 
@@ -930,10 +932,11 @@ class PostController extends Controller
                 $imageName = Str::uuid() . '.' . "png";
 
                 // Specify the storage path where you want to save the image
-                $storagePath = storage_path('app/public/post-images/' . $imageName);
+                // $storagePath = storage_path('app/public/post-images/' . $imageName);
 
                 // Save the image to the specified path
-                file_put_contents($storagePath, $imageData);
+                // file_put_contents($storagePath, $imageData);
+                Storage::disk('public')->put('post-images/' . $imageName, $imageData);
 
                 $imageUrl = asset('storage/post-images/' . $imageName);
 
