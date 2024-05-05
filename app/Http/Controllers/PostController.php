@@ -518,16 +518,18 @@ class PostController extends Controller
                 $imageName = Str::uuid() . '.' . "png";
 
                 // Specify the storage path where you want to save the image
-                $storagePath = storage_path('app/public/post-images/' . $imageName);
+                // $storagePath = storage_path('app/public/post-images/' . $imageName);
 
                 // Save the image to the specified path
-                file_put_contents($storagePath, $imageData);
+                // file_put_contents($storagePath, $imageData);
+                Storage::disk('public')->put('post-images/' . $imageName, $imageData);
 
                 $imageUrl = asset('storage/post-images/' . $imageName);
 
                 $post->medias()->create([
                     'path' => $imageUrl,
                 ]);
+
                 // Get the URL of the saved image
                 // $imageUrl = asset('storage/post-images/' . $imageName);
 
