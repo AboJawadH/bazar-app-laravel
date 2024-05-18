@@ -2,12 +2,14 @@
 
 namespace App\Notifications;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\OneSignal\OneSignalMessage;
 use NotificationChannels\OneSignal\OneSignalChannel;
+
 class RatingCreatedNotification extends Notification implements ShouldQueue
 {
 
@@ -17,11 +19,13 @@ class RatingCreatedNotification extends Notification implements ShouldQueue
      * Create a new notification instance.
      */
     public $rating;
+    public $post;
 
 
-    public function __construct($rating)
+    public function __construct($rating, $post)
     {
         $this->rating = $rating;
+        $this->post = $post;
     }
 
     /**
@@ -41,9 +45,23 @@ class RatingCreatedNotification extends Notification implements ShouldQueue
 
     public function toOneSignal($notifiable)
     {
-        return OneSignalMessage::create()
-            ->setSubject("new rating")
-            ->setBody("{$this->rating->user_name}  left a rating on your post");
+
+        $author = User::find($this->post->user_id);
+        $authorLanguage = $author->locale;
+
+        if ($authorLanguage === "ar") {
+            return OneSignalMessage::create()
+                ->setSubject("تقييم جديد")
+                ->setBody("{$this->rating->user_name} قيم منشورك");
+        } else if ($authorLanguage === "en") {
+            return OneSignalMessage::create()
+                ->setSubject("new rating")
+                ->setBody("{$this->rating->user_name} left a rating on your post");
+        } else {
+            return OneSignalMessage::create()
+                ->setSubject("yeni derecelendirme")
+                ->setBody("{$this->rating->user_name} gönderinize puan bıraktı");
+        }
     }
 
     public function toDatabase($notifiable)
@@ -65,9 +83,9 @@ class RatingCreatedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-                    ->line('The introduction to the notification.')
-                    ->action('Notification Action', url('/'))
-                    ->line('Thank you for using our application!');
+            ->line('The introduction to the notification.')
+            ->action('Notification Action', url('/'))
+            ->line('Thank you for using our application!');
     }
 
     /**

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('phone_number');
             $table->boolean("is_blocked");
             $table->string('notification_id')->nullable();
+            $table->string('locale', 2)->default('ar');
             $table->rememberToken();
             $table->timestamps();
         });

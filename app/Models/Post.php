@@ -90,4 +90,9 @@ class Post extends Model
     {
         return $this->hasMany(Rating::class);
     }
+    //=======================//
+    public function favoritedBy()
+    {
+        return $this->morphToMany(User::class, 'favorable', 'favorites', 'post_id', 'user_id');
+    }
 }

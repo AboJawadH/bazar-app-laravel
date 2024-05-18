@@ -25,6 +25,7 @@ class Admin extends Authenticatable
         'phone_number',
         'password',
         "notification_id",
+        "local",
     ];
 
     /**

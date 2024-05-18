@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('phone_number');
             $table->string('notification_id')->nullable();
+            $table->string('locale', 2)->default('ar');
             $table->rememberToken();
             $table->timestamps();
         });

@@ -35,6 +35,7 @@ use Illuminate\Support\Facades\Route;
 */
 Route::post('users/fetch', [AuthController::class, "index"]);
 Route::post('user/store', [AuthController::class, "signUpUser"]);
+Route::post('user/local-update', [AuthController::class, "updateUserLocal"]);
 Route::post('user/update', [AuthController::class, "updateProfileInfo"]);
 Route::post('user/info', [AuthController::class, "getUser"]);
 Route::post('user/fetch', [AuthController::class, "getOneUser"]);
@@ -85,6 +86,7 @@ Route::post('country/delete', [CountryController::class, "delete"]);
 |--------------------------------------------------------------------------
 */
 Route::post('cities/fetch', [CityController::class, "getCitiesForCountry"]);
+Route::post('cities/fetch-active-only', [CityController::class, "fetchActiveCities"]);
 Route::post('cities/fetch-active', [CityController::class, "getActiveCitiesForCountry"]);
 Route::post('city/store', [CityController::class, "store"]);
 Route::post('city/update', [CityController::class, "update"]);
@@ -96,6 +98,7 @@ Route::post('city/delete', [CityController::class, "delete"]);
 |--------------------------------------------------------------------------
 */
 Route::post('category/fetch', [CategoryController::class, "index"]);
+Route::post('category/active-fetch', [CategoryController::class, "getActiveCategories"]);
 Route::post('category/fetch-for-section', [CategoryController::class, "getActiveCategoriesForSection"]);
 Route::post('category/store', [CategoryController::class, "store"]);
 Route::post('category/update', [CategoryController::class, "update"]);
@@ -107,6 +110,7 @@ Route::post('category/delete', [CategoryController::class, "delete"]);
 |--------------------------------------------------------------------------
 */
 Route::post('subcategory/fetch-all', [SubcategoryController::class, "getAllSubcategoriesForCategory"]);
+Route::post('subcategory/active-fetch', [SubcategoryController::class, "getActiveSubCategories"]);
 Route::post('subcategory/fetch', [SubcategoryController::class, "getActiveSubcategoriesForCategory"]);
 Route::post('subcategory/store', [SubcategoryController::class, "store"]);
 Route::post('subcategory/update', [SubcategoryController::class, "update"]);

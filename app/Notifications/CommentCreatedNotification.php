@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use NotificationChannels\OneSignal\OneSignalMessage;
@@ -51,12 +52,22 @@ class CommentCreatedNotification extends Notification implements ShouldQueue
 
         // $currentLocale = App::getLocale();
         // Log::debug($currentLocale);
+        $author = User::find($this->post->user_id);
+        $authorLanguage = $author->locale;
 
-        return OneSignalMessage::create()
-            ->setSubject("new comment")
-            ->setBody("{$this->comment->user_name}  left a comment on your post");
-        // ->setData('title', "تعليق جديد") // Key and value for title
-        // ->setData('body', "{$this->comment->user_name}");
+        if ($authorLanguage === "ar") {
+            return OneSignalMessage::create()
+                ->setSubject("تعليق جديد")
+                ->setBody("{$this->comment->user_name} علق على منشورك");
+        } else if ($authorLanguage === "en") {
+            return OneSignalMessage::create()
+                ->setSubject("new comment")
+                ->setBody("{$this->comment->user_name} left a comment on your post");
+        } else {
+            return OneSignalMessage::create()
+                ->setSubject("yeni yorum")
+                ->setBody("{$this->comment->user_name} gönderinize yorum yaptı");
+        }
     }
 
     public function toDatabase($notifiable)

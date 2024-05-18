@@ -16,6 +16,28 @@ class SubcategoryController extends Controller
     //@@@@@@@@@@@@@@@@@@@@@@            FETCH           @@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+
+    public function getActiveSubCategories()
+    {
+        Log::debug("This function is get all active subcategories");
+        Log::debug("0");
+
+        $subcategories = Subcategory::where("is_active", true)->orderBy("order_number")->get();
+        Log::debug("1");
+        return response()->json([
+            'status' => true,
+            'message' => 'data fetched successfully ',
+            'subcategories' => $subcategories,
+            // 'errors' => $validator->errors(),
+        ]);
+    }
+
+
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@            FETCH           @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     public function getAllSubcategoriesForCategory(Request $request)
     {
         Log::debug("This function is get subcategories for category");

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use _Storage;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
+use App\Models\User;
 use App\Models\PostMedia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+
+use function PHPUnit\Framework\isNull;
 
 class PostController extends Controller
 {
@@ -302,6 +305,7 @@ class PostController extends Controller
         Log::debug("0");
         $validator = Validator::make($request->all(), [
             "post_id" => "required|integer|exists:posts,id",
+            "user_id" => "nullable|integer|exists:users,id",
         ]);
         //@@@@@@@@@@//
         //@@@@@@@@@@//
@@ -333,16 +337,31 @@ class PostController extends Controller
                 'message' => 'Post not found',
             ]);
         }
+        //@@@@@@@@@@//
+        //@@@@@@@@@@//
+        //@@@@@@@@@@//
+        $newFavoriteStatus = false;
+        if (!is_null($validatedData['user_id'])) {
+            $user = User::find($validatedData['user_id']);
+            if ($user->favoritePosts()->where('post_id', $post->id)->exists()) {
+                $newFavoriteStatus = true;
+                Log::debug("favorite status is : " . $newFavoriteStatus);
+            } else {
+                $newFavoriteStatus = false;
+                Log::debug("favorite status is : " . $newFavoriteStatus);
+            }
+            // $newFavoriteStatus = $user->favoritePosts()->where('post_id', $post->id)->exists();
+        }
         Log::debug("3");
-
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         //@@@@@@@@@@//
-        // i will get the medias from the post
+        // i will get the medias from the post resource
         return response()->json([
             'status' => true,
             'message' => 'Data successfully updated',
-            'post_object' => new PostResource($post), // Pass the object directly
+            'new_favorite_status' => $newFavoriteStatus,
+            'post_object' => new PostResource($post),
         ]);
     }
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
@@ -963,10 +982,15 @@ class PostController extends Controller
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     public function favorPost(Request $request)
     {
+        Log::debug("this function is favor/unfavor post");
+        Log::debug("0");
+
         $validator = Validator::make($request->all(), [
             "post_id" => "required|integer|exists:posts,id",
-
+            "user_id" => "required|integer|exists:users,id",
         ]);
+        Log::debug("1");
+        Log::debug($validator->errors());
 
         if ($validator->fails()) {
             return response()->json([
@@ -981,6 +1005,7 @@ class PostController extends Controller
 
         // Find the model instance by ID
         $post = Post::find($validatedData['post_id']);
+        $user = User::find($validatedData['user_id']);
 
         if (!$post) {
             return response()->json([
@@ -991,10 +1016,16 @@ class PostController extends Controller
         Log::debug("2");
 
 
-        if ($post) {
-            $post->is_favored = !$post->is_favored;
-            $post->save();
 
+        if ($post) {
+
+            if ($user->favoritePosts()->where('post_id', $post->id)->exists()) {
+                // If the post is already favorited, remove it from favorites
+                $user->favoritePosts()->detach($post);
+            } else {
+                // If the post is not favorited, add it to favorites
+                $user->favoritePosts()->attach($post);
+            }
             return response()->json([
                 'status' => true,
                 'message' => 'Favored status toggled successfully',
@@ -1026,10 +1057,10 @@ class PostController extends Controller
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         //@@@@@@@@@@//
-        $posts = Post::with('medias')
-            ->where('user_id', $validatedData["user_id"])
-            ->where('is_favored', true)
-            ->get();
+        $user = User::find($validatedData['user_id']);
+
+        $posts = $user->favoritePosts()->with('medias')->get();
+
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         //@@@@@@@@@@//
@@ -1095,7 +1126,7 @@ class PostController extends Controller
     {
 
         $validator = Validator::make($request->all(), [
-            "country_id" => "requried|integer|exists:countries,id",
+            "country_id" => "required|integer|exists:countries,id",
             "city_id" => "nullable|integer|exists:cities,id",
 
         ]);

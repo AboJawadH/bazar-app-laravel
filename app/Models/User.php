@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -22,6 +23,7 @@ class User extends Authenticatable
         'phone_number',
         'password',
         "notification_id",
+        "locale",
         'is_blocked',
     ];
 
@@ -51,5 +53,13 @@ class User extends Authenticatable
         return $this->notification_id;
     }
 
-}
 
+    //=======================//
+    //=======================// relationships
+    //=======================//
+    // i dont know what this favorable is but dont worry about it it is like a placeholder for descriping the relationship
+    public function favoritePosts()
+    {
+        return $this->morphedByMany(Post::class, 'favorable', 'favorites', 'user_id', 'post_id')->withTimestamps();
+    }
+}

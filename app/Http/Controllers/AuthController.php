@@ -135,6 +135,47 @@ class AuthController extends Controller
     }
 
 
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@            UPDATE          @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    public function updateUserLocal(Request $request)
+    {
+        Log::debug("This Function Is Update Local");
+        Log::debug("0");
+        $validator = Validator::make($request->all(), [
+            "user_id" => "required|integer|exists:users,id",
+            'new_local' => 'required|string',
+        ]);
+        Log::debug("1");
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Wrong parameters',
+                'errors' => $validator->errors(),
+            ]);
+        }
+
+        $validatedData = $validator->validated();
+
+        $user = User::find($validatedData['user_id']);
+
+        $user->update([
+            'locale' => $validatedData["new_local"],
+        ]);
+
+        Log::debug("3");
+
+
+        return response()->json([
+            'status' => true,
+            'message' => 'User info updated successfully',
+            // 'user_object' => $user,
+        ]);
+    }
+
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
@@ -167,7 +208,6 @@ class AuthController extends Controller
 
         Log::debug("2");
         $user = User::find($validatedData['user_id']);
-
 
         $user->update([
             'name' => $validatedData["name"],

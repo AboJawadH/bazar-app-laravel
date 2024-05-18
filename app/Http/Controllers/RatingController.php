@@ -110,7 +110,7 @@ class RatingController extends Controller
         $post = Post::findOrFail($rating->post_id); // Assuming you have the post ID
         $postPublisher = User::findOrFail($post->user_id); // Assuming you have the post ID
         Log::debug("4");
-        $postPublisher->notify(new RatingCreatedNotification($rating));
+        $postPublisher->notify(new RatingCreatedNotification($rating, $post));
         Log::debug("5");
 
         return response()->json([

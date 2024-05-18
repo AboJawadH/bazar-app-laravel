@@ -28,6 +28,25 @@ class CategoryController extends Controller
             // 'errors' => $validator->errors(),
         ]);
     }
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@            FETCH           @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    public function getActiveCategories()
+    {
+        Log::debug("This function is get all active categories");
+        Log::debug("0");
+
+        $categories = Category::where("is_active", true)->orderBy("order_number")->get();
+        Log::debug("1");
+        return response()->json([
+            'status' => true,
+            'message' => 'data fetched successfully ',
+            'categories' => $categories,
+            // 'errors' => $validator->errors(),
+        ]);
+    }
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
