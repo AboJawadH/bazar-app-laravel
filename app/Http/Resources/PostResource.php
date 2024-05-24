@@ -35,16 +35,28 @@ class PostResource extends JsonResource
             "is_favored" => $this->is_favored,
             //
             "user_id" => $this->user_id,
-            "user_name" => $this->user_name,
+            "user_name" => $this->whenLoaded('user', function () {
+                return $this->user->name;
+            }),
             "user_phone_number" => $this->user_phone_number,
             //
             "country_id" => $this->country_id,
-            "country_name" => $this->country_name,
+            "country_name" => $this->whenLoaded('country', function () {
+                return $this->country->ar_name;
+            }),
             "city_id" => $this->city_id,
-            "city_name" => $this->city_name,
-            "city_ar_name" => $this->city_ar_name,
-            "city_en_name" => $this->city_en_name,
-            "city_tr_name" => $this->city_tr_name,
+            "city_name" => $this->whenLoaded('city', function () {
+                return $this->city->ar_name;
+            }),
+            "city_ar_name" => $this->whenLoaded('city', function () {
+                return $this->city->ar_name;
+            }),
+            "city_en_name" => $this->whenLoaded('city', function () {
+                return $this->city->en_name;
+            }),
+            "city_tr_name" => $this->whenLoaded('city', function () {
+                return $this->city->tr_name;
+            }),
             //
             "is_car_forSale" => $this->is_car_forSale,
             "is_car_new" => $this->is_car_new,
@@ -64,7 +76,7 @@ class PostResource extends JsonResource
             "created_at" => $this->created_at,
             //
             'medias' => $this->whenLoaded('medias', fn () => $this->medias->isNotEmpty() ? PostMediaResource::collection($this->medias) : null),
-            'comments' => $this->whenLoaded('comments', fn () => $this->comments->isNotEmpty() ? $this->comments : null),
+            // 'comments' => $this->whenLoaded('comments', fn () => $this->comments->isNotEmpty() ? $this->comments : null),
         ];
     }
 }

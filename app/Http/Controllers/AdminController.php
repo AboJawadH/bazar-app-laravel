@@ -24,7 +24,7 @@ class AdminController extends Controller
         //@@@@@@@@@@@@@//
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:3|max:20',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'required|email|unique:admins,email',
             'phone_number' => 'required|string',
             'password' => 'required|min:6',
             'notification_id' => 'nullable|string',
@@ -56,7 +56,7 @@ class AdminController extends Controller
         Log::debug("4");
         Log::debug($validatedData["notification_id"]);
         //
-        $token = 'Bearer ' . $admin->createToken('User Register')->plainTextToken;
+        $token = 'Bearer ' . $admin->createToken('Admin Register')->plainTextToken;
         // $token = $user->createToken('auth_token')->plainTextToken; // Adjust the token name if needed
 
         Log::debug($token);

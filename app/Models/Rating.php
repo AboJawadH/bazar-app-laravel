@@ -16,8 +16,13 @@ class Rating extends Model
         "rating_review",
     ];
 
+      //=======================//
+      public function user()
+      {
+          return $this->belongsTo(User::class);
+      }
     // protected $casts = [
     //     'rating_value' => 'string',
     // ];
-    
+
 }

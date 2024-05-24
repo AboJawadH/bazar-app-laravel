@@ -46,7 +46,7 @@ class RatingController extends Controller
         //@@@@@@@@@@@@@@//
         //@@@@@@@@@@@@@@//
         $page = $request->input('page', 1);
-        $ratings = Rating::where("post_id", $validatedData["post_id"])->orderByDesc("created_at")->paginate(5, ['*'], 'page', $page);
+        $ratings = Rating::with('user',)->where("post_id", $validatedData["post_id"])->orderByDesc("created_at")->paginate(5, ['*'], 'page', $page);
         // the name of the column you want the average for
         $avg = Rating::where("post_id", $validatedData["post_id"])->avg("rating_value");
         $avgRatingString = number_format($avg, 1, '.', ''); // Format to 2 decimal places without trailing zeroes

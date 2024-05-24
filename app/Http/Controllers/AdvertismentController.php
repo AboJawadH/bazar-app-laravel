@@ -303,52 +303,30 @@ class AdvertismentController extends Controller
         }
         // Log::debug($validator->errors());
         Log::debug("2");
-
         $validatedData = $validator->validated();
-
 
         $ad = Advertisment::findOrFail($validatedData['ad_id']);
 
-
-
-
-
         if ($request->filled("image")) {
-
             if ($ad->image) {
                 $oldImagePath = public_path('storage/ads/' . basename($ad->image));
                 if (file_exists($oldImagePath)) {
                     unlink($oldImagePath);
                 }
             }
-
             $base64Image = $request->input('image');
             Log::debug("3");
-
             // Decode the base64 string into binary image data
             $imageData = base64_decode($base64Image);
-
-            // $extension = pathinfo($base64Image, "png");
-
             // Generate a unique filename for the image
             $imageName = time() . '.' . "png";
-
             // Specify the storage path where you want to save the image
-            // $storagePath = public_path('storage/ads' . $imageName);
-            // $storagePath = storage_path('app/public/ads/' . $imageName);
-
             // Save the image to the specified path
-            // file_put_contents($storagePath, $imageData);
             Storage::disk('public')->put('ads/' . $imageName, $imageData);
-
-            //  $request->file("image_link")->store("ads", "public");
-
             $imageUrl = asset('storage/ads/' . $imageName);
         }
         Log::debug("4");
-
         // Find the model instance by ID
-
         if (!$ad) {
             return response()->json([
                 'status' => false,
@@ -356,44 +334,6 @@ class AdvertismentController extends Controller
             ]);
         }
         Log::debug("5");
-
-        // $oldImagePath = $ad->image;  // Replace with your retrieval method
-        // $oldRelativePath = parse_url($oldImagePath)['path'];  // Assuming parsed URL structure
-
-        // // Delete old image
-        // if ($oldRelativePath && Storage::exists($oldRelativePath)) {
-        //     Storage::delete($oldRelativePath);
-        // }
-        // Log::debug("6");
-
-        // $oldImagePath = $ad->image;
-        // Log::debug($oldImagePath);
-
-        // // Extract the path from the URL
-        // $path = parse_url($oldImagePath, PHP_URL_PATH);
-
-        // // Remove the '/storage' prefix from the path
-        // $storagePath = str_replace('/storage', '', $path);
-
-        // // Get the absolute storage path
-        // $absoluteStoragePath = Storage::path($storagePath);
-        // Log::debug($absoluteStoragePath);
-        // Log::debug("3");
-
-        // Storage::disk("app/public/ads")->delete($absoluteStoragePath);
-        // Log::debug("4");
-
-        // if (file_exists($absoluteStoragePath)) {
-        //     Log::debug("3");
-
-        //     Storage::disk('public')->delete($oldImagePath);
-        //     Log::debug("4");
-
-        //     unlink($oldImagePath);
-        //     Log::debug("5");
-        // }
-
-        // Log::debug("6");
 
         $ad->update(
             [
@@ -442,6 +382,13 @@ class AdvertismentController extends Controller
         $validatedData = $validator->validated();
 
         $ad = Advertisment::find($validatedData['ad_id']);
+
+        if ($ad->image) {
+            $oldImagePath = public_path('storage/ads/' . basename($ad->image));
+            if (file_exists($oldImagePath)) {
+                unlink($oldImagePath);
+            }
+        }
 
         $ad->delete();
 

@@ -217,11 +217,12 @@ class AuthController extends Controller
         ]);
 
         Log::debug("3");
-
+        $token = 'Bearer ' . $user->createToken('User Register')->plainTextToken;
 
         return response()->json([
             'status' => true,
             'message' => 'User info updated successfully',
+            'token' => $token,
             'user_object' => $user,
         ]);
     }
@@ -446,85 +447,33 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         Log::debug("This Function Is Log User Out");
-
-        // if ($request->user() && $request->user()->currentAccessToken()) {
-        //     Log::debug("0");
-
-        //     $request->user()->currentAccessToken()->delete();
-        //     Log::debug("1");
-
-        //     // Perform any additional actions
-        //     return response()->json([
-        //         'message' => 'Access token deleted successfully.',
-        //     ]);
-        // } else {
-        //     return response()->json([
-        //         'message' => 'User not found or access token not available.',
-        //     ], 404);
-        // }
-        // $user = Auth::user();
-
-        // // Check if the user is not null
-        // if ($user) {
-        //     // Retrieve the current access token for the user
-        //     $currentAccessToken = $user->currentAccessToken();
-
-        //     // Check if the current access token exists
-        //     if ($currentAccessToken) {
-        //         // Delete the current access token
-        //         $currentAccessToken->delete();
-
-        //         // Return a success response
-        //         return response()->json([
-        //             'message' => 'Access token deleted successfully.',
-        //         ]);
-        //     }}
-        // Log::debug("Authenticated user: " . $request->user()->name);
-        // $request->user()->currentAccessToken()->delete();
-
-
-        // $user = auth()->user();
-        // Log::debug($request->user()->tokens());
-        // $user->tokens->delete();
-        // Log::debug("token deleted sucssesfully");
-        // Get the currently authenticated user
-        // if ($user) {
-
-        // }
-        //=================//
-        //=================//
-        //=================//
-        // $user = User::where('id', auth()->user()->id);
-
-        // if ($user) {
-        //     Log::debug("there is user");
-        //     // $user->notification_id = null;
-        //     // $user->save(); // Save the updated user record
-
-        //     $user->update([
-        //         'notification_id' => null,
-        //     ]);
-        //     Log::debug("notification id = " . $user->notification_id);
-        // }
-        //=================//
-        //=================//
-        //=================//
-        // if (auth()->check()) {
-
-
-        //     // $user->save(); // Save the updated user record
-        // }
-        // $user = auth()->user();
-        // Log::debug($user->name);
-
-        // $user->notification_id = null;
-        // $user->notification_id = null;
-        // App\Models\User::save($user);
-        // $user->DB::update(['notification_id' => null]);
-
         Log::debug("1");
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'user_id' => 'nullable|integer',
+            ],
+        );
+        Log::debug("1");
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors(),
+            ]);
+        }
+        Log::debug("2");
+        Log::debug($validator->errors());
+
+        $validatedData = $validator->validated();
+
+        $user = User::where('id', $request->user_id)->first();
+
+        $user->update(['notification_id' => null]);
+
+
         auth()->logout();
-        // auth()->user()->update(['notification_id' => null]);
         request()->session()->invalidate();
         request()->session()->regenerateToken();
         Log::debug("2");

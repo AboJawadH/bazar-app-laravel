@@ -62,7 +62,7 @@ class PostController extends Controller
         //@@@@@@@@@@// BASE QUERY
         //@@@@@@@@@@//
         Log::debug("1");
-        $posts = Post::with('medias')
+        $posts = Post::with('medias', "city", "user")
             ->where('parent_section_id', $validatedData["section_id"])
             ->where('city_id', $validatedData["city_id"]);
 
@@ -150,7 +150,7 @@ class PostController extends Controller
         //@@@@@@@@@@//
         //@@@@@@@@@@// BASE QUERY
         //@@@@@@@@@@//
-        $posts = Post::with('medias');
+        $posts = Post::with('medias', "user");
 
 
         $query = $posts
@@ -193,22 +193,6 @@ class PostController extends Controller
     public function getAllPosts(Request $request)
     {
 
-        // $validator = Validator::make($request->all(), [
-        //     "section_id" => "required|string",
-        //     "category_id" => "required|integer|exists:categories,id",
-        //     "subcategory_id" => "nullable|integer|exists:subcategories,id",
-        //     'city_id' => 'required|integer|exists:cities,id',
-        // ]);
-
-        // if ($validator->fails()) {
-        //     return response()->json([
-        //         'status' => false,
-        //         'message' => 'Wrong parameters',
-        //         'errors' => $validator->errors(),
-        //     ]);
-        // }
-
-        // $validatedData = $validator->validated();
         //@@@@@@@@@@//
         //@@@@@@@@@@// BASE QUERY
         //@@@@@@@@@@//
@@ -301,7 +285,6 @@ class PostController extends Controller
     public function getOnePost(Request $request)
     {
         Log::debug("This Function Is Get One Post");
-
         Log::debug("0");
         $validator = Validator::make($request->all(), [
             "post_id" => "required|integer|exists:posts,id",
@@ -329,7 +312,7 @@ class PostController extends Controller
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         Log::debug("2");
-        $post = Post::with('medias', "comments")->find($validatedData['post_id']);
+        $post = Post::with('medias', "user")->find($validatedData['post_id']);
 
         if (!$post) {
             return response()->json([
@@ -371,10 +354,8 @@ class PostController extends Controller
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     public function getPostsForUser(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             "user_id" => "nullable|integer|exists:users,id",
-
         ]);
 
         if ($validator->fails()) {
@@ -389,7 +370,7 @@ class PostController extends Controller
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         //@@@@@@@@@@//
-        $posts = Post::with('medias')
+        $posts = Post::with('medias',"user")
             ->where('user_id', $validatedData["user_id"])
             ->get();
         //@@@@@@@@@@//
@@ -457,7 +438,6 @@ class PostController extends Controller
             'medias' => 'nullable|array',
         ]);
 
-        Log::debug("1");
         Log::debug($validator->errors());
         if ($validator->fails()) {
             return response()->json([
@@ -467,9 +447,7 @@ class PostController extends Controller
             ]);
         }
 
-        Log::debug("2");
         $validatedData = $validator->validated();
-        Log::debug("3");
 
         $post =  Post::create(
             [
@@ -516,82 +494,34 @@ class PostController extends Controller
                 'number_of_rooms' => $validatedData['number_of_rooms'],
                 'number_of_toiltes' => $validatedData['number_of_toiltes'],
                 'floor_number' => $validatedData['floor_number'],
-                //
-                // 'search_word' => null,
             ],
         );
-
-        Log::debug("4");
-        // Log::debug($post->created_at);
-
 
         if ($request->filled("medias")) {
 
             $base64Images = $request->input('medias');
 
             foreach ($base64Images as $base64Image) {
-
-
                 // Decode the base64 string into binary image data
                 $imageData = base64_decode($base64Image);
-
                 // Generate a unique filename for the image
                 $imageName = Str::uuid() . '.' . "png";
-
                 // Specify the storage path where you want to save the image
-                // $storagePath = storage_path('app/public/post-images/' . $imageName);
-
-                // Save the image to the specified path
-                // file_put_contents($storagePath, $imageData);
                 Storage::disk('public')->put('post-images/' . $imageName, $imageData);
-
                 $imageUrl = asset('storage/post-images/' . $imageName);
-
                 $post->medias()->create([
                     'path' => $imageUrl,
                 ]);
-
-                // Get the URL of the saved image
-                // $imageUrl = asset('storage/post-images/' . $imageName);
-
-                // Store the image URL in an array
-                // $imageUrls[] = $imageUrl;
-
             }
-
-            Log::debug("5");
-
             $post->load('medias');
-
-            Log::debug("6");
-
-            return response()->json([
-                'status' => true,
-                'message' => 'data successfully created',
-                // 'post_object' => $post,
-                // 'errors' => $validator->errors(),
-            ]);
-
-
-            // for ($i = 0; $i < count($request->medias); $i++) {
-
-            //     $imageData = base64_decode($base64Image);
-
-            //     // Generate a unique filename for the image
-            //     $imageName = time() . '.' . "png";
-
-            //     // Specify the storage path where you want to save the image
-            //     $storagePath = storage_path('app/public/post-images/' . $imageName);
-
-            //     // Save the image to the specified path
-            //     file_put_contents($storagePath, $imageData);
-
-            //     $post->medias()->create([
-            //         'path' => _Storage::api_upload("medias.$i", 'posts'),
-            //     ]);
-            // }
-
         }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'data successfully created',
+            // 'post_object' => $post,
+            // 'errors' => $validator->errors(),
+        ]);
     }
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
@@ -722,69 +652,12 @@ class PostController extends Controller
             ],
         );
 
-        Log::debug("4");
-
-
-        // if ($request->filled("medias")) {
-
-        //     $base64Images = $request->input('medias');
-
-        //     foreach ($base64Images as $base64Image) {
-        //         // Decode the base64 string into binary image data
-        //         $imageData = base64_decode($base64Image);
-
-        //         // Generate a unique filename for the image
-        //         $imageName = Str::uuid() . '.' . "png";
-
-        //         // Specify the storage path where you want to save the image
-        //         $storagePath = storage_path('app/public/post-images/' . $imageName);
-
-        //         // Save the image to the specified path
-        //         file_put_contents($storagePath, $imageData);
-
-        //         $post->medias()->update([
-        //             'path' => $storagePath,
-        //         ]);
-        //         // Get the URL of the saved image
-        //         // $imageUrl = asset('storage/post-images/' . $imageName);
-
-        //         // Store the image URL in an array
-        //         // $imageUrls[] = $imageUrl;
-        //     }
-        // }
-
-        // Log::debug("5");
-
-        // $post->load('medias');
-
-        Log::debug("6");
-
         return response()->json([
             'status' => true,
             'message' => 'data successfully updated',
             // 'post_object' => $post,
             // 'errors' => $validator->errors(),
         ]);
-
-
-        // for ($i = 0; $i < count($request->medias); $i++) {
-
-        //     $imageData = base64_decode($base64Image);
-
-        //     // Generate a unique filename for the image
-        //     $imageName = time() . '.' . "png";
-
-        //     // Specify the storage path where you want to save the image
-        //     $storagePath = storage_path('app/public/post-images/' . $imageName);
-
-        //     // Save the image to the specified path
-        //     file_put_contents($storagePath, $imageData);
-
-        //     $post->medias()->create([
-        //         'path' => _Storage::api_upload("medias.$i", 'posts'),
-        //     ]);
-        // }
-
     }
 
 
@@ -812,83 +685,19 @@ class PostController extends Controller
 
         $post = Post::find($validatedData['post_id']);
 
+        foreach ($post->medias as $media) {
+            $oldImagePath = public_path('storage/post-images/' . basename($media->path));
+            if (file_exists($oldImagePath)) {
+                unlink($oldImagePath);
+            }
+        }
+
         $post->delete();
 
         return response()->json([
             'status' => true,
             'message' => 'Post deleted successfully',
         ]);
-    }
-
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
-    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
-    //@@@@@@@@@@@@@@@@@@@@@@           DELETE           @@@@@@@@@@@@@@@@@@@@@@@@//
-    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
-    public function deleteMedia(Request $request)
-    {
-        Log::debug("0");
-        $validator = Validator::make($request->all(), [
-            "post_id" => "required|integer|exists:posts,id",
-            "media_id" => "required|integer|exists:post_media,id",
-        ]);
-        //@@@@@@@@@@//
-        //@@@@@@@@@@//
-        //@@@@@@@@@@//
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Wrong parameters',
-                'errors' => $validator->errors(),
-            ]);
-        }
-        //@@@@@@@@@@//
-        //@@@@@@@@@@//
-        //@@@@@@@@@@//
-        Log::debug("1");
-
-        $validatedData = $validator->validated();
-        //@@@@@@@@@@//
-        //@@@@@@@@@@//
-        //@@@@@@@@@@//
-        Log::debug("2");
-
-        $post = Post::findOrFail($validatedData["post_id"]);
-        //
-        if (!$post) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Post not found',
-            ]);
-        }
-        //
-        //
-        $media = PostMedia::findOrFail($validatedData["media_id"]);
-        //
-        if (!$media) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Media not found',
-            ]);
-        }
-
-        Log::debug("3");
-
-        if ($post->medias->contains($media)) {
-            $media->delete();
-            // Optionally, you can also remove the media from the post's relationship
-            // $post->medias()->detach($media);
-            return response()->json([
-                'status' => true,
-                'message' => 'Media deleted successfully'
-            ]);
-        }
-        //@@@@@@@@@@//
-        //@@@@@@@@@@//
-        //@@@@@@@@@@//
-        Log::debug("4");
-
-        return response()->json(['message' => 'Media not found for the given post'], 404);
     }
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
@@ -974,10 +783,83 @@ class PostController extends Controller
             ]);
         }
     }
-
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
-    //@@@@@@@@@@@@@@@@@@@@@@           UPDATE           @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@           DELETE           @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    public function deleteMedia(Request $request)
+    {
+        Log::debug("0");
+        $validator = Validator::make($request->all(), [
+            "post_id" => "required|integer|exists:posts,id",
+            "media_id" => "required|integer|exists:post_media,id",
+        ]);
+        //@@@@@@@@@@//
+        //@@@@@@@@@@//
+        //@@@@@@@@@@//
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Wrong parameters',
+                'errors' => $validator->errors(),
+            ]);
+        }
+        //@@@@@@@@@@//
+        //@@@@@@@@@@//
+        //@@@@@@@@@@//
+        Log::debug("1");
+
+        $validatedData = $validator->validated();
+        //@@@@@@@@@@//
+        //@@@@@@@@@@//
+        //@@@@@@@@@@//
+        Log::debug("2");
+
+        $post = Post::findOrFail($validatedData["post_id"]);
+        //
+        if (!$post) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Post not found',
+            ]);
+        }
+        //
+        //
+        $media = PostMedia::findOrFail($validatedData["media_id"]);
+        //
+        if (!$media) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Media not found',
+            ]);
+        }
+
+        Log::debug("3");
+
+        if ($post->medias->contains($media)) {
+            $media->delete();
+            $oldImagePath = public_path('storage/post-images/' . basename($media->path));
+            if (file_exists($oldImagePath)) {
+                unlink($oldImagePath);
+            }
+            // Optionally, you can also remove the media from the post's relationship
+            // $post->medias()->detach($media);
+            return response()->json([
+                'status' => true,
+                'message' => 'Media deleted successfully'
+            ]);
+        }
+        //@@@@@@@@@@//
+        //@@@@@@@@@@//
+        //@@@@@@@@@@//
+        Log::debug("4");
+
+        return response()->json(['message' => 'Media not found for the given post'], 404);
+    }
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@           FAVOR            @@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     public function favorPost(Request $request)
@@ -1014,8 +896,6 @@ class PostController extends Controller
             ]);
         }
         Log::debug("2");
-
-
 
         if ($post) {
 

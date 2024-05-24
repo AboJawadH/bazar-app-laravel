@@ -12,6 +12,7 @@ return [
     | as the size rules. Feel free to tweak each of these messages here.
     |
     */
+    
     'accepted' => 'يجب قبول :attribute.',
     'accepted_if' => ':attribute يجب قبوله عندما :other تكون :value.',
     'active_url' => ':attribute لا يُمثّل رابطًا صحيحًا.',

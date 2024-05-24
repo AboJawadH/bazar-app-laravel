@@ -33,16 +33,17 @@ use Illuminate\Support\Facades\Route;
 | Auth Routes
 |--------------------------------------------------------------------------
 */
+
 Route::post('users/fetch', [AuthController::class, "index"]);
 Route::post('user/store', [AuthController::class, "signUpUser"]);
-Route::post('user/local-update', [AuthController::class, "updateUserLocal"]);
-Route::post('user/update', [AuthController::class, "updateProfileInfo"]);
+Route::post('user/local-update', [AuthController::class, "updateUserLocal"])->middleware(['auth:sanctum']);
+Route::post('user/update', [AuthController::class, "updateProfileInfo"])->middleware(['auth:sanctum']);
 Route::post('user/info', [AuthController::class, "getUser"]);
 Route::post('user/fetch', [AuthController::class, "getOneUser"]);
-Route::post('user/delete', [AuthController::class, "deleteUser"]);
+Route::post('user/delete', [AuthController::class, "deleteUser"])->middleware(['auth:sanctum-admin']);
 Route::post('user/login', [AuthController::class, "loginUser"]);
 Route::post('user/logout', [AuthController::class, "logout"]);
-Route::post('user/block', [AuthController::class, "blockUnblockUser"]);
+Route::post('user/block', [AuthController::class, "blockUnblockUser"])->middleware(['auth:sanctum-admin']);
 
 
 /*
@@ -65,9 +66,9 @@ Route::post('admin/logout', [AdminController::class, "logout"]);
 
 Route::post('advertisments/fetch', [AdvertismentController::class, "index"]);
 Route::post('advertisments/fetch-by-location', [AdvertismentController::class, "getAdvertisementsByLocation"]);
-Route::post('advertisment/store', [AdvertismentController::class, "store"]);
-Route::post('advertisment/update', [AdvertismentController::class, "update"]);
-Route::post('advertisment/delete', [AdvertismentController::class, "delete"]);
+Route::post('advertisment/store', [AdvertismentController::class, "store"])->middleware(['auth:sanctum-admin']);
+Route::post('advertisment/update', [AdvertismentController::class, "update"])->middleware(['auth:sanctum-admin']);
+Route::post('advertisment/delete', [AdvertismentController::class, "delete"])->middleware(['auth:sanctum-admin']);
 
 /*
 |--------------------------------------------------------------------------
@@ -76,9 +77,9 @@ Route::post('advertisment/delete', [AdvertismentController::class, "delete"]);
 */
 Route::post('country/fetch', [CountryController::class, "index"]);
 Route::post('country/fetch-active', [CountryController::class, "fetchActiveCountries"]);
-Route::post('country/store', [CountryController::class, "store"]);
-Route::post('country/update', [CountryController::class, "update"]);
-Route::post('country/delete', [CountryController::class, "delete"]);
+Route::post('country/store', [CountryController::class, "store"])->middleware(['auth:sanctum-admin']);
+Route::post('country/update', [CountryController::class, "update"])->middleware(['auth:sanctum-admin']);
+Route::post('country/delete', [CountryController::class, "delete"])->middleware(['auth:sanctum-admin']);
 
 /*
 |--------------------------------------------------------------------------
@@ -88,9 +89,9 @@ Route::post('country/delete', [CountryController::class, "delete"]);
 Route::post('cities/fetch', [CityController::class, "getCitiesForCountry"]);
 Route::post('cities/fetch-active-only', [CityController::class, "fetchActiveCities"]);
 Route::post('cities/fetch-active', [CityController::class, "getActiveCitiesForCountry"]);
-Route::post('city/store', [CityController::class, "store"]);
-Route::post('city/update', [CityController::class, "update"]);
-Route::post('city/delete', [CityController::class, "delete"]);
+Route::post('city/store', [CityController::class, "store"])->middleware(['auth:sanctum-admin']);
+Route::post('city/update', [CityController::class, "update"])->middleware(['auth:sanctum-admin']);
+Route::post('city/delete', [CityController::class, "delete"])->middleware(['auth:sanctum-admin']);
 
 /*
 |--------------------------------------------------------------------------
@@ -100,9 +101,9 @@ Route::post('city/delete', [CityController::class, "delete"]);
 Route::post('category/fetch', [CategoryController::class, "index"]);
 Route::post('category/active-fetch', [CategoryController::class, "getActiveCategories"]);
 Route::post('category/fetch-for-section', [CategoryController::class, "getActiveCategoriesForSection"]);
-Route::post('category/store', [CategoryController::class, "store"]);
-Route::post('category/update', [CategoryController::class, "update"]);
-Route::post('category/delete', [CategoryController::class, "delete"]);
+Route::post('category/store', [CategoryController::class, "store"])->middleware(['auth:sanctum-admin']);
+Route::post('category/update', [CategoryController::class, "update"])->middleware(['auth:sanctum-admin']);
+Route::post('category/delete', [CategoryController::class, "delete"])->middleware(['auth:sanctum-admin']);
 
 /*
 |--------------------------------------------------------------------------
@@ -112,9 +113,9 @@ Route::post('category/delete', [CategoryController::class, "delete"]);
 Route::post('subcategory/fetch-all', [SubcategoryController::class, "getAllSubcategoriesForCategory"]);
 Route::post('subcategory/active-fetch', [SubcategoryController::class, "getActiveSubCategories"]);
 Route::post('subcategory/fetch', [SubcategoryController::class, "getActiveSubcategoriesForCategory"]);
-Route::post('subcategory/store', [SubcategoryController::class, "store"]);
-Route::post('subcategory/update', [SubcategoryController::class, "update"]);
-Route::post('subcategory/delete', [SubcategoryController::class, "delete"]);
+Route::post('subcategory/store', [SubcategoryController::class, "store"])->middleware(['auth:sanctum-admin']);
+Route::post('subcategory/update', [SubcategoryController::class, "update"])->middleware(['auth:sanctum-admin']);
+Route::post('subcategory/delete', [SubcategoryController::class, "delete"])->middleware(['auth:sanctum-admin']);
 
 /*
 |--------------------------------------------------------------------------
@@ -123,12 +124,12 @@ Route::post('subcategory/delete', [SubcategoryController::class, "delete"]);
 */
 Route::post('post/fetch', [PostController::class, "index"]);
 Route::post('posts/filter', [PostController::class, "filterPosts"]);
-Route::post('post/fetch-posts-for-user', [PostController::class, "getPostsForUser"]);
+Route::post('post/fetch-posts-for-user', [PostController::class, "getPostsForUser"])->middleware(['user-or-admin']);
 Route::post('post/fetch-all-posts', [PostController::class, "getAllPosts"]);
 Route::post('post/fetch-similar-posts', [PostController::class, "getSimilarPosts"]);
 Route::post('post/fetch-one-post', [PostController::class, "getOnePost"]);
-Route::post('post/store-new-medias', [PostController::class, "storeMedias"]);
-Route::post('post/delete-one-media', [PostController::class, "deleteMedia"]);
+Route::post('post/store-new-medias', [PostController::class, "storeMedias"])->middleware(['auth:sanctum']);
+Route::post('post/delete-one-media', [PostController::class, "deleteMedia"])->middleware(['auth:sanctum']);
 Route::post('post/store', [PostController::class, "store"])->middleware(['auth:sanctum']);
 Route::post('post/update', [PostController::class, "update"])->middleware(['auth:sanctum']);
 Route::post('post/delete', [PostController::class, "delete"])->middleware(['auth:sanctum']);
@@ -137,14 +138,14 @@ Route::post('post/fetch-favored-post', [PostController::class, "getFavoredPosts"
 Route::post('post/special-post', [PostController::class, "specialPost"]);
 Route::post('post/fetch-special-posts', [PostController::class, "getSpeacialPosts"]);
 Route::post('post/fetch-recent-posts', [PostController::class, "getRecentPosts"]);
-Route::post('post/block', [PostController::class, "blockPost"]);
+Route::post('post/block', [PostController::class, "blockPost"])->middleware(['auth:sanctum-admin']);
 /*
 |--------------------------------------------------------------------------
 | Comments Routes
 |--------------------------------------------------------------------------
 */
-Route::post('comments/fetch', [CommentController::class, "index"]);
-Route::post('comment/store', [CommentController::class, "store"]);
+Route::post('comments/fetch', [CommentController::class, "fetchComments"]);
+Route::post('comment/store', [CommentController::class, "store"])->middleware(['auth:sanctum']);
 
 /*
 |--------------------------------------------------------------------------
@@ -152,7 +153,7 @@ Route::post('comment/store', [CommentController::class, "store"]);
 |--------------------------------------------------------------------------
 */
 Route::post('ratings/fetch', [RatingController::class, "index"]);
-Route::post('rating/store', [RatingController::class, "store"]);
+Route::post('rating/store', [RatingController::class, "store"])->middleware(['auth:sanctum']);
 
 /*
 |--------------------------------------------------------------------------
@@ -160,14 +161,14 @@ Route::post('rating/store', [RatingController::class, "store"]);
 |--------------------------------------------------------------------------
 */
 Route::post('reports/fetch', [ReportController::class, "index"]);
-Route::post('report/store', [ReportController::class, "store"]);
+Route::post('report/store', [ReportController::class, "store"])->middleware(['auth:sanctum']);
 
 /*
 |--------------------------------------------------------------------------
 | Notifications Routes
 |--------------------------------------------------------------------------
 */
-Route::post('notifications/fetch', [NotificationController::class, "index"]);
+Route::post('notifications/fetch', [NotificationController::class, "index"])->middleware(['auth:sanctum']);
 // Route::post('report/store', [ReportController::class, "store"]);
 /*
 |--------------------------------------------------------------------------
