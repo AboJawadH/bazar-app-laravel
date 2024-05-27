@@ -312,7 +312,7 @@ class PostController extends Controller
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         Log::debug("2");
-        $post = Post::with('medias', "user")->find($validatedData['post_id']);
+        $post = Post::with('medias', "user", "country", "city")->find($validatedData['post_id']);
 
         if (!$post) {
             return response()->json([
@@ -370,7 +370,7 @@ class PostController extends Controller
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         //@@@@@@@@@@//
-        $posts = Post::with('medias',"user")
+        $posts = Post::with('medias', "user", "country", "city")
             ->where('user_id', $validatedData["user_id"])
             ->get();
         //@@@@@@@@@@//
@@ -531,6 +531,7 @@ class PostController extends Controller
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     public function update(Request $request)
     {
+        Log::debug("This function is edit post");
         Log::debug("0");
 
         $validator = Validator::make($request->all(), [
@@ -586,6 +587,8 @@ class PostController extends Controller
                 'errors' => $validator->errors(),
             ]);
         }
+        Log::debug($validator->errors());
+
         Log::debug("1");
 
         $validatedData = $validator->validated();
@@ -898,17 +901,22 @@ class PostController extends Controller
         Log::debug("2");
 
         if ($post) {
+            $newFavoriteStatus = false;
 
             if ($user->favoritePosts()->where('post_id', $post->id)->exists()) {
                 // If the post is already favorited, remove it from favorites
                 $user->favoritePosts()->detach($post);
+                $newFavoriteStatus = false;
             } else {
                 // If the post is not favorited, add it to favorites
                 $user->favoritePosts()->attach($post);
+                $newFavoriteStatus = true;
             }
             return response()->json([
                 'status' => true,
                 'message' => 'Favored status toggled successfully',
+                'new_favorite_status' => $newFavoriteStatus,
+
             ]);
         }
     }
