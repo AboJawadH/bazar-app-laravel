@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Admin;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
@@ -25,7 +26,7 @@ class AdminController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:3|max:20',
             'email' => 'required|email|unique:admins,email',
-            'phone_number' => 'required|string',
+            'phone_number' => 'required|string|unique:admins,phone_number',
             'password' => 'required|min:6',
             'notification_id' => 'nullable|string',
         ]);
@@ -37,7 +38,7 @@ class AdminController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Wrong parameters',
-                'errors' => $validator->errors(),
+                'errors' => Arr::flatten($validator->errors()->toArray()),
             ]);
         }
         Log::debug("2");

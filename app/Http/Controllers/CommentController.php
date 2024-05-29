@@ -9,6 +9,7 @@ use App\Models\Post;
 use App\Models\User;
 use App\Notifications\CommentCreatedNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 
@@ -31,7 +32,7 @@ class CommentController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Wrong parameters',
-                'errors' => $validator->errors(),
+                'errors' => Arr::flatten($validator->errors()->toArray()),
             ]);
         }
 
@@ -64,7 +65,7 @@ class CommentController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Wrong parameters',
-                'errors' => $validator->errors(),
+                'errors' => Arr::flatten($validator->errors()->toArray()),
             ]);
         }
         Log::debug($validator->errors());
@@ -106,7 +107,7 @@ class CommentController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Wrong parameters',
-                'errors' => $validator->errors(),
+                'errors' => Arr::flatten($validator->errors()->toArray()),
             ]);
         }
 

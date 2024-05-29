@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Subcategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -50,7 +51,7 @@ class SubcategoryController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Wrong parameters',
-                'errors' => $validator->errors(),
+                'errors' => Arr::flatten($validator->errors()->toArray()),
             ]);
         }
 
@@ -85,7 +86,7 @@ class SubcategoryController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Wrong parameters',
-                'errors' => $validator->errors(),
+                'errors' => Arr::flatten($validator->errors()->toArray()),
             ]);
         }
 
@@ -130,7 +131,7 @@ class SubcategoryController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Wrong parameters',
-                'errors' => $validator->errors(),
+                'errors' => Arr::flatten($validator->errors()->toArray()),
             ]);
         }
 
@@ -187,7 +188,7 @@ class SubcategoryController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Wrong parameters',
-                'errors' => $validator->errors(),
+                'errors' => Arr::flatten($validator->errors()->toArray()),
             ]);
         }
 
@@ -247,7 +248,7 @@ class SubcategoryController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Wrong parameters',
-                'errors' => $validator->errors(),
+                'errors' => Arr::flatten($validator->errors()->toArray()),
             ]);
         }
         Log::debug("2");

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Post;
 use App\Models\User;
 use App\Notifications\RatingCreatedNotification;
+use Illuminate\Support\Arr;
 
 class RatingController extends Controller
 {
@@ -87,7 +88,7 @@ class RatingController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Wrong parameters',
-                'errors' => $validator->errors(),
+                'errors' => Arr::flatten($validator->errors()->toArray()),
             ]);
         }
 
