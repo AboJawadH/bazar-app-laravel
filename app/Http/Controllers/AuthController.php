@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -98,7 +99,8 @@ class AuthController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Wrong parameters',
-                'errors' => $validator->errors(),
+                'errors' => Arr::flatten($validator->errors()->toArray()),
+                // 'errors' => $validator->errors(),
             ]);
         }
         Log::debug("2");
