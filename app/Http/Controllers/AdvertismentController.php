@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Advertisment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -81,6 +82,7 @@ class AdvertismentController extends Controller
         $validator = Validator::make($request->all(), [
             'city_id' => 'nullable|integer|exists:cities,id',
             'country_id' => 'nullable|integer|exists:countries,id',
+            'region_id' => 'nullable|integer|exists:regions,id',
         ]);
         Log::debug($validator->errors());
 
@@ -97,65 +99,96 @@ class AdvertismentController extends Controller
         Log::debug("2");
 
         $validatedData = $validator->validated();
+
+        $country_id = $validatedData["country_id"];
+        $city_id = $validatedData["city_id"];
+        $region_id = $validatedData["region_id"];
+
+        $ads =  Advertisment::query()
+            ->where('is_active', true)  // Fetch only active ads
+            ->where(function ($query) use ($country_id, $city_id, $region_id) {
+                $query->where('ad_type', 'general')  // Fetch general ads
+                    ->orWhere(function ($query) use ($country_id) {
+                        if ($country_id) {
+                            $query->where('ad_type', 'country')
+                                ->where('country_id', $country_id);
+                        }
+                    })
+                    ->orWhere(function ($query) use ($city_id) {
+                        if ($city_id) {
+                            $query->where('ad_type', 'city')
+                                ->where('city_id', $city_id);
+                        }
+                    })
+                    ->orWhere(function ($query) use ($region_id) {
+                        if ($region_id) {
+                            $query->where('ad_type', 'region')
+                                ->where('region_id', $region_id);
+                        }
+                    });
+            })
+            ->get();
+
+
         //@@@@@@@@@//@@@@@@@@@//
         //@@@@@@@@@//@@@@@@@@@//
         //@@@@@@@@@//@@@@@@@@@//
         // general
         // $ads = Advertisment::All();
 
-        $queryGeneral = Advertisment::query()->where("is_general", true)->where('is_active', true);
-        $querySpecial = Advertisment::query()->where("is_general", false)->where('is_active', true);
-        // country
-        if (!is_null($validatedData["country_id"]) && is_null($validatedData["city_id"])) {
-            Log::debug("there is country");
-            $querySpecial->where('country_id', $validatedData["country_id"])
-                ->whereHas("country", function ($query) {
-                    $query->where('is_active', true);
-                })
-                ->where('city_id', null);
-        }
-        // city
-        if ($validatedData["country_id"] !== null && $validatedData["city_id"] !== null) {
-            Log::debug("there is country and city");
+        // $queryGeneral = Advertisment::query()->where("is_general", true)->where('is_active', true);
+        // $querySpecial = Advertisment::query()->where("is_general", false)->where('is_active', true);
+        // // country
+        // if (!is_null($validatedData["country_id"]) && is_null($validatedData["city_id"])) {
+        //     Log::debug("there is only country");
+        //     $querySpecial->where('country_id', $validatedData["country_id"])
+        //         ->whereHas("country", function ($query) {
+        //             $query->where('is_active', true);
+        //         })
+        //         ->where('city_id', null);
+        // }
+        // // city
+        // if ($validatedData["country_id"] !== null && $validatedData["city_id"] !== null) {
+        //     Log::debug("there is country and city");
 
-            $countryId = $validatedData["country_id"];
-            $cityId = $validatedData["city_id"];
+        //     $countryId = $validatedData["country_id"];
+        //     $cityId = $validatedData["city_id"];
 
-            $querySpecial->where(function ($query) use ($countryId, $cityId) {
-                $query->where(function ($query) use ($countryId, $cityId) {
-                    $query->where('country_id', $countryId)
-                        ->whereHas("country", function ($query) {
-                            $query->where('is_active', true);
-                        })
-                        ->where('city_id', $cityId)
-                        ->whereHas("city", function ($query) {
-                            $query->where('is_active', true);
-                        });
-                })->orWhere(function ($query) use ($countryId) {
-                    $query->where('country_id', $countryId)
-                        ->whereHas("country", function ($query) {
-                            $query->where('is_active', true);
-                        })
-                        ->whereNull('city_id');
-                });
-            });
-            // $querySpecial
-            // ->where('country_id', $validatedData["country_id"])
-            //     ->whereHas("country", function ($query) {
-            //         $query->where('is_active', true);
-            //     })
-            //     ->where('city_id', $validatedData["city_id"])
-            //     ->whereHas("city", function ($query) {
-            //         $query->where('is_active', true);
-            //     });
-            // ->orWhere('country_id', $validatedData["country_id"])
-            // ->orWhereHas("country", function ($query) {
-            //     $query->where('is_active', true);
-            // });
-        }
-        $adsGeneral = $queryGeneral->get();
-        $adsSpecial = $querySpecial->get();
-        $ads = $adsGeneral->merge($adsSpecial); // Merge both collections
+        //     $querySpecial->where(function ($query) use ($countryId, $cityId) {
+        //         $query->where(function ($query) use ($countryId, $cityId) {
+        //             $query->where('country_id', $countryId)
+        //                 ->whereHas("country", function ($query) {
+        //                     $query->where('is_active', true);
+        //                 })
+        //                 ->where('city_id', $cityId)
+        //                 ->whereHas("city", function ($query) {
+        //                     $query->where('is_active', true);
+        //                 });
+        //         })->orWhere(function ($query) use ($countryId) {
+        //             $query->where('country_id', $countryId)
+        //                 ->whereHas("country", function ($query) {
+        //                     $query->where('is_active', true);
+        //                 })
+        //                 ->whereNull('city_id');
+        //         });
+        //     });
+        //     // $querySpecial
+        //     // ->where('country_id', $validatedData["country_id"])
+        //     //     ->whereHas("country", function ($query) {
+        //     //         $query->where('is_active', true);
+        //     //     })
+        //     //     ->where('city_id', $validatedData["city_id"])
+        //     //     ->whereHas("city", function ($query) {
+        //     //         $query->where('is_active', true);
+        //     //     });
+        //     // ->orWhere('country_id', $validatedData["country_id"])
+        //     // ->orWhereHas("country", function ($query) {
+        //     //     $query->where('is_active', true);
+        //     // });
+        // }
+        // $adsGeneral = $queryGeneral->get();
+        // $adsSpecial = $querySpecial->get();
+        // $ads = $adsGeneral->merge($adsSpecial); // Merge both collections
 
         Log::debug("3");
 
@@ -188,6 +221,8 @@ class AdvertismentController extends Controller
             'city_name' => 'nullable|string',
             'country_id' => 'nullable|integer|exists:countries,id',
             'country_name' => 'nullable|string',
+            'region_id' => 'nullable|integer|exists:regions,id',
+            'region_name' => 'nullable|string',
             'post_id' => 'nullable|integer',
             'post_title' => 'nullable|string',
             'image' => 'nullable|string',
@@ -250,6 +285,8 @@ class AdvertismentController extends Controller
                 'city_name' => $validatedData['city_name'],
                 'country_id' => $validatedData['country_id'],
                 'country_name' => $validatedData['country_name'],
+                'region_id' => $validatedData['region_id'],
+                'region_name' => $validatedData['region_name'],
                 'post_id' => $validatedData['post_id'],
                 'post_title' => $validatedData['post_title'],
                 'image' => $imageUrl ?? null,

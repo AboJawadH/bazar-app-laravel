@@ -63,6 +63,19 @@ class PostResource extends JsonResource
             "city_tr_name" => $this->whenLoaded('city', function () {
                 return $this->city->tr_name;
             }),
+            "region_id" => $this->region_id,
+            "region_name" => $this->whenLoaded('region', function () {
+                return $this->region->ar_name;
+            }),
+            "region_ar_name" => $this->whenLoaded('region', function () {
+                return $this->region->ar_name;
+            }),
+            "region_en_name" => $this->whenLoaded('region', function () {
+                return $this->region->en_name;
+            }),
+            "region_tr_name" => $this->whenLoaded('region', function () {
+                return $this->region->tr_name;
+            }),
             //
             "is_car_forSale" => $this->is_car_forSale,
             "is_car_new" => $this->is_car_new,

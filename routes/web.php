@@ -4,6 +4,8 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdvertismentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\ChatMessageController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CountryController;
@@ -11,6 +13,7 @@ use App\Http\Controllers\DashBoardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\RatingController;
+use App\Http\Controllers\RegionController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SubcategoryController;
 use App\Models\Comment;
@@ -95,6 +98,20 @@ Route::post('city/delete', [CityController::class, "delete"])->middleware(['auth
 
 /*
 |--------------------------------------------------------------------------
+| region Routes
+|--------------------------------------------------------------------------
+*/
+Route::post('regions/fetch', [RegionController::class, "getRegionsForCity"]);
+Route::post('region/store', [RegionController::class, "store"]);
+Route::post('region/update', [RegionController::class, "update"]);
+
+
+
+
+
+
+/*
+|--------------------------------------------------------------------------
 | category Routes
 |--------------------------------------------------------------------------
 */
@@ -139,6 +156,7 @@ Route::post('post/special-post', [PostController::class, "specialPost"]);
 Route::post('post/fetch-special-posts', [PostController::class, "getSpeacialPosts"]);
 Route::post('post/fetch-recent-posts', [PostController::class, "getRecentPosts"]);
 Route::post('post/block', [PostController::class, "blockPost"])->middleware(['auth:sanctum-admin']);
+
 /*
 |--------------------------------------------------------------------------
 | Comments Routes
@@ -146,6 +164,17 @@ Route::post('post/block', [PostController::class, "blockPost"])->middleware(['au
 */
 Route::post('comments/fetch', [CommentController::class, "fetchComments"]);
 Route::post('comment/store', [CommentController::class, "store"])->middleware(['auth:sanctum']);
+
+/*
+|--------------------------------------------------------------------------
+| Chats Routes
+|--------------------------------------------------------------------------
+*/
+Route::post('chat/storeOrGet', [ChatController::class, "getOrCreateChat"])->middleware(['auth:sanctum']);
+Route::post('chats/fetch', [ChatController::class, "getAllChatsForUser"])->middleware(['auth:sanctum']);
+Route::post('chat/delete', [ChatController::class, "delete"])->middleware(['auth:sanctum']);
+Route::post('message/store', [ChatMessageController::class, "sendMessage"])->middleware(['auth:sanctum']);
+Route::post('message/delete', [ChatMessageController::class, "delete"])->middleware(['auth:sanctum']);
 
 /*
 |--------------------------------------------------------------------------

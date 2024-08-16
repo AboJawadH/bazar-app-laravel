@@ -21,4 +21,10 @@ class City extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+     //=======================// relationships
+     public function regions()
+     {
+         return $this->hasMany(Region::class);
+     }
 }

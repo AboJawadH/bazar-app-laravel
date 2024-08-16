@@ -38,6 +38,8 @@ class Post extends Model
         "city_ar_name",
         "city_en_name",
         "city_tr_name",
+        "region_id",
+        "region_name",
         //
         "is_car_forSale",
         "is_car_new",
@@ -88,6 +90,11 @@ class Post extends Model
     public function city()
     {
         return $this->belongsTo(City::class);
+    }
+    //=======================//
+    public function region()
+    {
+        return $this->belongsTo(Region::class);
     }
     //=======================//
     public function medias()

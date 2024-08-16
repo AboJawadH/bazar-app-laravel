@@ -79,8 +79,8 @@ class NotificationController extends Controller
                 'body' => $notification->data['body'] ?? "",
                 'en_body' => $notification->data['en_body'] ?? "",
                 'tr_body' => $notification->data['tr_body'] ?? "",
-                'post_id' => $notification->data['post_id'] ?? "",
-                'user_id' => $notification->data['user_id'] ?? "",
+                'post_id' => $notification->data['post_id'] ?? null,
+                'user_id' => $notification->data['user_id'] ?? null,
                 'created_at' => $notification->created_at->format('Y-m-d'), // Format timestamp for Flutter
                 // Add other relevant notification data fields here
             ];

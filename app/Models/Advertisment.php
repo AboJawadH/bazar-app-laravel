@@ -18,6 +18,8 @@ class Advertisment extends Model
         "city_name",
         "country_id",
         "country_name",
+        "region_id",
+        "region_name",
         "post_id",
         "post_title",
         "ads_link",

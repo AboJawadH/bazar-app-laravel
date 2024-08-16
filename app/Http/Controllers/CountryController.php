@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\CountryResource;
+use App\Models\City;
 use App\Models\Country;
+use App\Models\Region;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class CountryController extends Controller
 {
@@ -34,11 +38,18 @@ class CountryController extends Controller
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     public function fetchActiveCountries()
     {
+
         $countries = Country::where('is_active', true)->get();
+        $cities = City::where('is_active', true)->get();
+        $regions = Region::where('is_active', true)->get();
+
+
         return response()->json([
             'status' => true,
             'message' => 'data fetched successfully ',
             'countries' => $countries,
+            'cities' => $cities,
+            'regions' => $regions,
             // 'errors' => $validator->errors(),
         ]);
     }
@@ -50,6 +61,8 @@ class CountryController extends Controller
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     public function store(Request $request)
     {
+        Log::debug("This Function is create a new country");
+
         $validator = Validator::make($request->all(), [
             'ar_name' => 'required|string',
             'en_name' => 'required|string',

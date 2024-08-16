@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use _Storage;
+use App\Http\Resources\ChatResource;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
 use App\Models\User;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use App\Models\Chat;
 
 use function PHPUnit\Framework\isNull;
 
@@ -34,7 +36,7 @@ class PostController extends Controller
             "section_id" => "nullable|string",
             "category_id" => "nullable|integer|exists:categories,id",
             "subcategory_id" => "nullable|integer|exists:subcategories,id",
-            'city_id' => 'nullable|integer|exists:cities,id',
+            'region_id' => 'nullable|integer|exists:regions,id',
             //
             "is_car_for_sale" => "nullable|boolean",
             "is_car_new" => "nullable|boolean",
@@ -63,9 +65,9 @@ class PostController extends Controller
         //@@@@@@@@@@// BASE QUERY
         //@@@@@@@@@@//
         Log::debug("1");
-        $posts = Post::with('medias', "city", "user")
+        $posts = Post::with('medias', "city","region", "user")
             ->where('parent_section_id', $validatedData["section_id"])
-            ->where('city_id', $validatedData["city_id"]);
+            ->where('region_id', $validatedData["region_id"]);
 
         Log::debug("2");
         $query = $posts
@@ -151,7 +153,7 @@ class PostController extends Controller
         //@@@@@@@@@@//
         //@@@@@@@@@@// BASE QUERY
         //@@@@@@@@@@//
-        $posts = Post::with('medias', "user");
+        $posts = Post::with('medias', "user","region");
 
 
         $query = $posts
@@ -237,7 +239,7 @@ class PostController extends Controller
             "section_id" => "required|string",
             "category_id" => "required|integer|exists:categories,id",
             "subcategory_id" => "nullable|integer|exists:subcategories,id",
-            'city_id' => 'required|integer|exists:cities,id',
+            'region_id' => 'required|integer|exists:regions,id',
         ]);
         Log::debug($validator->errors());
 
@@ -256,7 +258,7 @@ class PostController extends Controller
         $posts = Post::with('medias')
             ->where('parent_section_id', $validatedData["section_id"])
             ->where('parent_category_id', $validatedData["category_id"])
-            ->where('city_id', $validatedData["city_id"]);
+            ->where('region_id', $validatedData["region_id"]);
 
 
         if (is_null($validatedData["subcategory_id"])) {
@@ -305,22 +307,36 @@ class PostController extends Controller
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         Log::debug($validator->errors());
-
         Log::debug("1");
-
         $validatedData = $validator->validated();
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         Log::debug("2");
-        $post = Post::with('medias', "user", "country", "city")->find($validatedData['post_id']);
-
+        $post = Post::with('medias', "user", "country", "city","region")->find($validatedData['post_id']);
         if (!$post) {
             return response()->json([
                 'status' => false,
                 'message' => 'Post not found',
             ]);
         }
+        //@@@@@@@@@@//
+        //@@@@@@@@@@// chat
+        //@@@@@@@@@@//
+        // $userOne = User::find($validatedData['user_id']);
+        // $userOneId = $userOne->id;
+        // Log::debug("user one id is " . $userOneId);
+        // $userTwoId = $post->user_id;
+        // Log::debug("user two id is $userTwoId");
+
+        // $chat = Chat::with('messages')->where(function ($query) use ($userOneId, $userTwoId) {
+        //     $query->where('user_one_id', $userOneId)->where('post_publisher_id', $userTwoId);
+        // })->orWhere(function ($query) use ($userOneId, $userTwoId) {
+        //     $query->where('user_one_id', $userTwoId)->where('post_publisher_id', $userOneId);
+        // })->first();
+        // Log::debug("chat is $chat");
+        // Log::debug("chat user one is $chat->user_one_id");
+        // Log::debug("chat user two is $chat->post_publisher_id");
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         //@@@@@@@@@@//
@@ -345,6 +361,7 @@ class PostController extends Controller
             'status' => true,
             'message' => 'Data successfully updated',
             'new_favorite_status' => $newFavoriteStatus,
+            // 'chat' => new ChatResource($chat),
             'post_object' => new PostResource($post),
         ]);
     }
@@ -371,7 +388,7 @@ class PostController extends Controller
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         //@@@@@@@@@@//
-        $posts = Post::with('medias', "user", "country", "city")
+        $posts = Post::with('medias', "user", "country", "city","region",)
             ->where('user_id', $validatedData["user_id"])
             ->get();
         //@@@@@@@@@@//
@@ -410,6 +427,8 @@ class PostController extends Controller
             'city_tr_name' => 'required|string',
             'country_id' => 'required|integer|exists:countries,id',
             'country_name' => 'required|string',
+            'region_id' => 'required|integer|exists:regions,id',
+            'region_name' => 'required|string',
             //
             'title' => 'required|string',
             'description' => 'required|string',
@@ -466,6 +485,8 @@ class PostController extends Controller
                 'city_tr_name' => $validatedData['city_tr_name'],
                 'country_id' => $validatedData['country_id'],
                 'country_name' => $validatedData['country_name'],
+                'region_id' => $validatedData['region_id'],
+                'region_name' => $validatedData['region_name'],
                 //
                 'title' => $validatedData['title'],
                 'description' => $validatedData['description'],
@@ -552,6 +573,8 @@ class PostController extends Controller
             'city_tr_name' => 'required|string',
             'country_id' => 'required|integer|exists:countries,id',
             'country_name' => 'required|string',
+            'region_id' => 'required|integer|exists:regions,id',
+            'region_name' => 'required|string',
             //
             'title' => 'required|string',
             'description' => 'required|string',
@@ -622,6 +645,8 @@ class PostController extends Controller
                 'city_tr_name' => $validatedData['city_tr_name'],
                 'country_id' => $validatedData['country_id'],
                 'country_name' => $validatedData['country_name'],
+                'region_id' => $validatedData['region_id'],
+                'region_name' => $validatedData['region_name'],
                 //
                 'title' => $validatedData['title'],
                 'description' => $validatedData['description'],

@@ -62,4 +62,14 @@ class User extends Authenticatable
     {
         return $this->morphedByMany(Post::class, 'favorable', 'favorites', 'user_id', 'post_id')->withTimestamps();
     }
+
+    public function chatsAsUserOne()
+    {
+        return $this->hasMany(Chat::class, 'user_one_id');
+    }
+
+    public function chatsAsUserTwo()
+    {
+        return $this->hasMany(Chat::class, 'user_two_id');
+    }
 }
