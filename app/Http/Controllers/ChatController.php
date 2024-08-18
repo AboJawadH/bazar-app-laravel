@@ -48,12 +48,23 @@ class ChatController extends Controller
         $userOneId = $validatedData['user_one_id'];
         $userTwoId = $validatedData['post_publisher_id'];
 
-        $chat = Chat::with("messages", "userOne", "userTwo")->where(function ($query) use ($userOneId, $userTwoId) {
-            $query->where('user_one_id', $userOneId)
-                ->where('post_publisher_id', $userTwoId);
-        })->orWhere(function ($query) use ($userOneId, $userTwoId) {
-            $query->where('user_one_id', $userTwoId)->where('post_publisher_id', $userOneId);
-        })->first();
+        $chat = Chat::with([
+            'messages' => function ($query) {
+                $query->orderBy('created_at', 'desc')
+                    ->limit(40);
+            },
+            'userOne',
+            'userTwo',
+        ])
+            ->where(function ($query) use ($userOneId, $userTwoId) {
+                $query->where('user_one_id', $userOneId)
+                    ->where('post_publisher_id', $userTwoId);
+            })
+            ->orWhere(function ($query) use ($userOneId, $userTwoId) {
+                $query->where('user_one_id', $userTwoId)
+                    ->where('post_publisher_id', $userOneId);
+            })
+            ->first();
 
         //@@@@@@@@@@@@@//
         //@@@@@@@@@@@@@// UPDATE IS READ STATUS
