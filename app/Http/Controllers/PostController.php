@@ -48,6 +48,8 @@ class PostController extends Controller
             //
             "search_word" => "nullable|string",
             //
+            "user_id" => "nullable|integer|exists:users,id",
+            //
             "page" => 'nullable|integer',
 
         ]);
@@ -65,7 +67,7 @@ class PostController extends Controller
         //@@@@@@@@@@// BASE QUERY
         //@@@@@@@@@@//
         Log::debug("1");
-        $posts = Post::with('medias', "city","region", "user")
+        $posts = Post::with('medias', "city", "region", "user")
             ->where('parent_section_id', $validatedData["section_id"])
             ->where('region_id', $validatedData["region_id"]);
 
@@ -108,7 +110,19 @@ class PostController extends Controller
 
         $posts = $query->orderByDesc("created_at")->paginate(3, ['*'], 'page', $page);
         Log::debug("3");
+        //@@@@@@@@@@//
+        //@@@@@@@@@@//
+        //@@@@@@@@@@//
+        $userFavoritePostIds = [];
+        Log::debug("Fetching favorites for user ID: " . $validatedData['user_id']);
 
+        if (!is_null($validatedData['user_id'])) {
+            Log::debug("Fetching favorites for user ID: " . $validatedData['user_id']);
+            $user = User::find($validatedData['user_id']);
+            $userFavoritePostIds = $user->favoritePosts()->pluck('post_id')->toArray();
+            Log::debug("Fetched favorite post IDs: " . json_encode($userFavoritePostIds));
+        }
+        Log::debug('User Favorite Post IDs:', $userFavoritePostIds);
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         //@@@@@@@@@@//
@@ -116,6 +130,7 @@ class PostController extends Controller
             'status' => true,
             'message' => 'data fetched successfully',
             'posts' => PostResource::collection($posts),
+            'userFavoritePosts' => $userFavoritePostIds,
             // 'errors' => $validator->errors(),
         ]);
     }
@@ -153,7 +168,7 @@ class PostController extends Controller
         //@@@@@@@@@@//
         //@@@@@@@@@@// BASE QUERY
         //@@@@@@@@@@//
-        $posts = Post::with('medias', "user","region");
+        $posts = Post::with('medias', "user", "region");
 
 
         $query = $posts
@@ -313,30 +328,13 @@ class PostController extends Controller
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         Log::debug("2");
-        $post = Post::with('medias', "user", "country", "city","region")->find($validatedData['post_id']);
+        $post = Post::with('medias', "user", "country", "city", "region")->find($validatedData['post_id']);
         if (!$post) {
             return response()->json([
                 'status' => false,
                 'message' => 'Post not found',
             ]);
         }
-        //@@@@@@@@@@//
-        //@@@@@@@@@@// chat
-        //@@@@@@@@@@//
-        // $userOne = User::find($validatedData['user_id']);
-        // $userOneId = $userOne->id;
-        // Log::debug("user one id is " . $userOneId);
-        // $userTwoId = $post->user_id;
-        // Log::debug("user two id is $userTwoId");
-
-        // $chat = Chat::with('messages')->where(function ($query) use ($userOneId, $userTwoId) {
-        //     $query->where('user_one_id', $userOneId)->where('post_publisher_id', $userTwoId);
-        // })->orWhere(function ($query) use ($userOneId, $userTwoId) {
-        //     $query->where('user_one_id', $userTwoId)->where('post_publisher_id', $userOneId);
-        // })->first();
-        // Log::debug("chat is $chat");
-        // Log::debug("chat user one is $chat->user_one_id");
-        // Log::debug("chat user two is $chat->post_publisher_id");
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         //@@@@@@@@@@//
@@ -361,7 +359,6 @@ class PostController extends Controller
             'status' => true,
             'message' => 'Data successfully updated',
             'new_favorite_status' => $newFavoriteStatus,
-            // 'chat' => new ChatResource($chat),
             'post_object' => new PostResource($post),
         ]);
     }
@@ -388,7 +385,7 @@ class PostController extends Controller
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         //@@@@@@@@@@//
-        $posts = Post::with('medias', "user", "country", "city","region",)
+        $posts = Post::with('medias', "user", "country", "city", "region",)
             ->where('user_id', $validatedData["user_id"])
             ->get();
         //@@@@@@@@@@//
@@ -933,17 +930,19 @@ class PostController extends Controller
                 // If the post is already favorited, remove it from favorites
                 $user->favoritePosts()->detach($post);
                 $newFavoriteStatus = false;
+                // $post->is_favored = false;
             } else {
                 // If the post is not favorited, add it to favorites
                 $user->favoritePosts()->attach($post);
                 $newFavoriteStatus = true;
+                // $post->is_favored = true;
             }
+            // $post->save();
             return response()->json([
                 'status' => true,
                 'message' => 'Favored status toggled successfully',
                 'new_favorite_status' => $newFavoriteStatus,
-
-            ]);
+            ],);
         }
     }
 

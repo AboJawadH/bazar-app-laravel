@@ -32,7 +32,7 @@ class PostResource extends JsonResource
             "is_active" => $this->is_active,
             "is_special" => $this->is_special,
             "special_level" => $this->special_level,
-            "is_favored" => $this->is_favored,
+            "is_favored" => (bool) $this->is_favored ,
             //
             "user_id" => $this->user_id,
             "user_name" => $this->whenLoaded('user', function () {
@@ -94,7 +94,7 @@ class PostResource extends JsonResource
             //
             "created_at" => $this->created_at,
             //
-            'medias' => $this->whenLoaded('medias', fn () => $this->medias->isNotEmpty() ? PostMediaResource::collection($this->medias) : null),
+            'medias' => $this->whenLoaded('medias', fn() => $this->medias->isNotEmpty() ? PostMediaResource::collection($this->medias) : null),
             // 'comments' => $this->whenLoaded('comments', fn () => $this->comments->isNotEmpty() ? $this->comments : null),
         ];
     }
