@@ -108,7 +108,7 @@ class PostController extends Controller
 
         $page = $request->input('page', 1);
 
-        $posts = $query->orderByDesc("created_at")->paginate(3, ['*'], 'page', $page);
+        $posts = $query->orderByDesc("created_at")->paginate(6, ['*'], 'page', $page);
         Log::debug("3");
         //@@@@@@@@@@//
         //@@@@@@@@@@//
