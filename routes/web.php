@@ -112,9 +112,11 @@ Route::post('region/update', [RegionController::class, "update"]);
 | sections routes
 |--------------------------------------------------------------------------
 */
+Route::post('region/store', [RegionController::class, "store"]);
+Route::post('region/update', [RegionController::class, "update"]);
 Route::post('sections/fetch-all', [SectionController::class, "getAllSections"])->middleware(['maintenance.check']);
-Route::post('sections/fetch', [SectionController::class, "getMainSections"])->middleware(['maintenance.check']);
-Route::post('subsections/fetch-all', [SectionController::class, "getAllSubsectionsForSection"])->middleware(['maintenance.check']);
+Route::post('section/store', [SectionController::class, "store"]);
+Route::post('section/update', [SectionController::class, "update"]);
 
 /*
 |--------------------------------------------------------------------------
