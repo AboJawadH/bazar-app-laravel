@@ -13,11 +13,14 @@ return new class extends Migration
     {
         Schema::create('regions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("country_id")->constrained()->cascadeOnDelete();
-            $table->foreignId("city_id")->constrained()->cascadeOnDelete();
+            $table->foreignId("parent_region_id")->nullable();
             $table->string("ar_name");
-            $table->string("en_name");
-            $table->string("tr_name");
+            $table->string("en_name")->nullable();
+            $table->string("tr_name")->nullable();
+            $table->string("flag")->nullable();
+            $table->string("currency")->nullable();
+            $table->string("country_code")->nullable();
+            $table->string("phone_code")->nullable();
             $table->boolean("is_active");
             $table->timestamps();
         });

@@ -86,7 +86,7 @@ class AuthController extends Controller
         //@@@@@@@@@@@@@//
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:3|max:20',
-            'email' => 'required|email|unique:users,email',
+            // 'email' => 'required|email|unique:users,email',
             'phone_number' => 'required|string|unique:users,phone_number',
             'password' => 'required|min:6',
             'notification_id' => 'nullable|string',
@@ -111,7 +111,7 @@ class AuthController extends Controller
         //@@@@@@@@@@@@@//
         $user =  User::create([
             "name" => $validatedData["name"],
-            "email" => $validatedData["email"],
+            // "email" => $validatedData["email"],
             "phone_number" => $validatedData["phone_number"],
             "is_blocked" => false,
             "password" => Hash::make($validatedData["password"]),
@@ -191,7 +191,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             "user_id" => "nullable|integer|exists:users,id",
             'name' => 'nullable|string',
-            'email' => 'required|string',
+            // 'email' => 'required|string',
             'phone_number' => 'required|string',
             'password' => 'nullable|string|min:6',
         ]);
@@ -213,7 +213,7 @@ class AuthController extends Controller
 
         $user->update([
             'name' => $validatedData["name"],
-            'email' => $validatedData["email"],
+            // 'email' => $validatedData["email"],
             'phone_number' => $validatedData["phone_number"],
             'password' => $validatedData["password"] != null ? $validatedData["password"] : $user->password,
         ]);
@@ -376,7 +376,7 @@ class AuthController extends Controller
         $validator = Validator::make(
             $request->all(),
             [
-                'email' => 'required|email',
+                'phone_number' => 'required|string',
                 'password' => 'required|min:6',
                 'notification_id' => 'nullable|string',
             ],
@@ -403,7 +403,7 @@ class AuthController extends Controller
         //@@@@@@@@@@@@@@@//
         //@@@@@@@@@@@@@@@//
         //@@@@@@@@@@@@@@@//
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('phone_number', $request->phone_number)->first();
 
         if ($user) {
             $token = 'Bearer ' . $user->createToken('User Register')->plainTextToken;
@@ -418,7 +418,7 @@ class AuthController extends Controller
         //@@@@@@@@@@@@@@@//
         //@@@@@@@@@@@@@@@//
         if (auth()->attempt([
-            'email' => $validatedData["email"],
+            'phone_number' => $validatedData["phone_number"],
             'password' => $validatedData["password"],
         ])) {
             Log::debug("4");

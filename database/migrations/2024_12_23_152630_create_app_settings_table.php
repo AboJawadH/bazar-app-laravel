@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('advertisments', function (Blueprint $table) {
-            $table->foreignId("region_id")->nullable();
-            $table->string("region_name")->nullable();
+        Schema::create('app_settings', function (Blueprint $table) {
+            $table->id();
+            $table->boolean('is_maintenance_on')->default(false);
+            $table->timestamps();
         });
     }
 
@@ -22,8 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('advertisments', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('app_settings');
     }
 };

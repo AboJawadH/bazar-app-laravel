@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\RegionResource;
 use App\Models\City;
 use App\Models\Region;
 use Illuminate\Http\Request;
@@ -11,17 +12,60 @@ use Illuminate\Support\Facades\Log;
 
 class RegionController extends Controller
 {
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@            FETCH           @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    public function getAllRegions()
+    {
+        Log::debug("-----------------------------------");
+        Log::debug("This function is get all regions");
+        Log::debug("-----------------------------------");
+
+
+        $regions = Region::with('parentRegion')->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'data fetched successfully ',
+            'regions' => RegionResource::collection($regions),
+        ]);
+    }
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@            FETCH           @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    public function getMainRegions()
+    {
+        Log::debug("---------------------------------------------");
+        Log::debug("This function is get regions without parents");
+        Log::debug("---------------------------------------------");
+
+
+        $regions = Region::with('parentRegion')->whereNull('parent_region_id')->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'data fetched successfully ',
+            'regions' => RegionResource::collection($regions),
+        ]);
+    }
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@            FETCH           @@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
-    public function getRegionsForCity(Request $request)
+    public function getRegionsForParentRegion(Request $request)
     {
+        Log::debug("----------------------------------------------");
+        Log::debug("This function is get regions for parent region");
+        Log::debug("----------------------------------------------");
 
         $validator = Validator::make($request->all(), [
-            'city_id' => 'required|integer|exists:cities,id',
+            "parent_region_id" => 'required|integer|exists:regions,id',
         ]);
 
         if ($validator->fails()) {
@@ -34,14 +78,13 @@ class RegionController extends Controller
 
         $validatedData = $validator->validated();
 
-        $city = City::find($validatedData['city_id']);
-        $regions = $city->regions;
+        $regions = Region::where('parent_region_id', $validatedData['parent_region_id'])
+            ->get();
 
         return response()->json([
             'status' => true,
             'message' => 'data fetched successfully ',
             'regions' => $regions,
-            // 'errors' => $validator->errors(),
         ]);
     }
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
@@ -51,11 +94,12 @@ class RegionController extends Controller
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     public function store(Request $request)
     {
-        Log::debug("This Function is create a new region");
-        Log::debug("0");
+        Log::debug("-------------------------------------");
+        Log::debug("This function is create a new region");
+        Log::debug("-------------------------------------");
+
         $validator = Validator::make($request->all(), [
-            'country_id' => 'required|integer|exists:countries,id',
-            'city_id' => 'required|integer|exists:cities,id',
+            'parent_region_id' => 'nullable|integer|exists:regions,id',
             'ar_name' => 'required|string',
             'en_name' => 'required|string',
             'tr_name' => 'required|string',
@@ -75,8 +119,7 @@ class RegionController extends Controller
 
         $region =  Region::create(
             [
-                'country_id' => $validatedData['country_id'],
-                'city_id' => $validatedData['city_id'],
+                'parent_region_id' => $validatedData['parent_region_id'],
                 'ar_name' => $validatedData['ar_name'],
                 'en_name' => $validatedData['en_name'],
                 'tr_name' => $validatedData['tr_name'],
@@ -88,7 +131,6 @@ class RegionController extends Controller
             'status' => true,
             'message' => 'data successfully created',
             'region_object' => $region,
-            // 'errors' => $validator->errors(),
         ]);
     }
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//

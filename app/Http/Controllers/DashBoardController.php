@@ -31,11 +31,11 @@ class DashBoardController extends Controller
         $numberOfPosts = Post::count();
         $numberOfPostsThisMonth = Post::whereMonth('created_at', date('m'))->count();
         $numberOfPostsThisDay = Post::whereDay('created_at', date('d'))->count();
-        $numberOfMainSectionPosts = Post::where('parent_section_id',"1")->count();
-        $numberOfCarsPosts = Post::where('parent_section_id',"2")->count();
-        $numberOfRealEstatesPosts = Post::where('parent_section_id',"3")->count();
-        $numberOfGiftsPosts = Post::where('parent_section_id',"4")->count();
-        $numberOfJopsPosts = Post::where('parent_section_id',"5")->count();
+        // $numberOfMainSectionPosts = Post::where('parent_section_id',"1")->count();
+        // $numberOfCarsPosts = Post::where('parent_section_id',"2")->count();
+        // $numberOfRealEstatesPosts = Post::where('parent_section_id',"3")->count();
+        // $numberOfGiftsPosts = Post::where('parent_section_id',"4")->count();
+        // $numberOfJopsPosts = Post::where('parent_section_id',"5")->count();
 
         Log::debug("1");
         //@@@@@@@@@@@@@@//
@@ -48,11 +48,11 @@ class DashBoardController extends Controller
             'posts_count' => (string) $numberOfPosts,
             'month_posts' => (string) $numberOfPostsThisMonth,
             'day_posts' => (string) $numberOfPostsThisDay,
-            'main_posts' => (string) $numberOfMainSectionPosts,
-            'cars_posts' => (string) $numberOfCarsPosts,
-            'realEstates_posts' => (string) $numberOfRealEstatesPosts,
-            'gifts_posts' => (string) $numberOfGiftsPosts,
-            'jops_posts' => (string) $numberOfJopsPosts,
+            // 'main_posts' => (string) $numberOfMainSectionPosts,
+            // 'cars_posts' => (string) $numberOfCarsPosts,
+            // 'realEstates_posts' => (string) $numberOfRealEstatesPosts,
+            // 'gifts_posts' => (string) $numberOfGiftsPosts,
+            // 'jops_posts' => (string) $numberOfJopsPosts,
         ]);
     }
 }

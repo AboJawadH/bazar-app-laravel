@@ -9,15 +9,11 @@ class Post extends Model
 {
     use HasFactory;
     protected $fillable = [
-        "parent_section_id",
-        "parent_section_name",
-        "parent_category_id",
-        "parent_category_name",
-        "subcategory_id",
-        "subcategory_name",
+        "section_id",
+
         //
-        "post_type",
         "the_price",
+        "currency",
         "title",
         "description",
 
@@ -31,17 +27,12 @@ class Post extends Model
         "user_name",
         "user_phone_number",
         //
-        "country_id",
-        "country_name",
-        "city_id",
-        "city_name",
-        "city_ar_name",
-        "city_en_name",
-        "city_tr_name",
         "region_id",
-        "region_name",
+        "location_description",
+        "location_text",
+        "longitude",
+        "latitude",
         //
-        "is_car_forSale",
         "is_car_new",
         "is_gear_automatic",
         "gas_type",
@@ -66,7 +57,6 @@ class Post extends Model
         'is_active' => 'boolean',
         'is_special' => 'boolean',
         'is_favored' => 'boolean',
-        'is_car_forSale' => 'boolean',
         'is_car_new' => 'boolean',
         'is_gear_automatic' => 'boolean',
         'is_realestate_for_sale' => 'boolean',
@@ -82,6 +72,14 @@ class Post extends Model
     {
         return $this->belongsTo(User::class);
     }
+    //=======================//
+
+    public function section()
+    {
+        return $this->belongsTo(Section::class);
+    }
+    //=======================//
+
     public function country()
     {
         return $this->belongsTo(Country::class);

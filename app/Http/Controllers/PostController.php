@@ -30,15 +30,13 @@ class PostController extends Controller
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     public function index(Request $request)
     {
-        Log::debug("This function get posts");
-        Log::debug("0");
+        Log::debug("------------------------------------");
+        Log::debug("This function is grt filtered posts");
+        Log::debug("------------------------------------");
         $validator = Validator::make($request->all(), [
-            "section_id" => "nullable|string",
-            "category_id" => "nullable|integer|exists:categories,id",
-            "subcategory_id" => "nullable|integer|exists:subcategories,id",
+            "section_id" => 'nullable|integer|exists:sections,id',
             'region_id' => 'nullable|integer|exists:regions,id',
             //
-            "is_car_for_sale" => "nullable|boolean",
             "is_car_new" => "nullable|boolean",
             "is_gear_automatic" => "nullable|boolean",
             //
@@ -46,12 +44,13 @@ class PostController extends Controller
             "is_furnutured" => "nullable|boolean",
             "number_of_rooms" => "nullable|int",
             //
-            "search_word" => "nullable|string",
+            "sort_by" => "required|string|in:highest_price,lowest_price,most_recent,oldest",
+            //
+            "search_text" => "nullable|string",
             //
             "user_id" => "nullable|integer|exists:users,id",
             //
             "page" => 'nullable|integer',
-
         ]);
         Log::debug($validator->errors());
         if ($validator->fails()) {
@@ -67,28 +66,22 @@ class PostController extends Controller
         //@@@@@@@@@@// BASE QUERY
         //@@@@@@@@@@//
         Log::debug("1");
-        $posts = Post::with('medias', "city", "region", "user")
-            ->where('parent_section_id', $validatedData["section_id"])
-            ->where('region_id', $validatedData["region_id"]);
+        $posts = Post::with('medias', "section", "region", "user")
+            ->when(!is_null($validatedData["section_id"]), function ($query) use ($validatedData) {
+                return $query->where('section_id', $validatedData["section_id"]);
+            });
 
         Log::debug("2");
         $query = $posts
-            // CATEGORY
-            ->when(!is_null($validatedData["category_id"]), function ($query) use ($validatedData) {
-                return $query->where('parent_category_id', $validatedData["category_id"]);
-            })
-            // SUBCATEGORY
-            ->when(!is_null($validatedData["subcategory_id"]), function ($query) use ($validatedData) {
-                return $query->where('subcategory_id', $validatedData["subcategory_id"]);
+            // REGION
+            ->when(!is_null($validatedData["region_id"]), function ($query) use ($validatedData) {
+                return $query->where('region_id', $validatedData["region_id"]);
             })
             // SEARCH
-            ->when(!is_null($validatedData["search_word"]), function ($query) use ($validatedData) {
-                return $query->where('title', 'LIKE', '%' . $validatedData["search_word"] . '%');
+            ->when(!is_null($validatedData["search_text"]), function ($query) use ($validatedData) {
+                return $query->where('title', 'LIKE', '%' . $validatedData["search_text"] . '%');
             })
             // CAR
-            ->when(!is_null($validatedData["is_car_for_sale"]), function ($query) use ($validatedData) {
-                return $query->where('is_car_forSale', $validatedData["is_car_for_sale"]);
-            })
             ->when(!is_null($validatedData["is_car_new"]), function ($query) use ($validatedData) {
                 return $query->where('is_car_new', $validatedData["is_car_new"]);
             })
@@ -106,9 +99,25 @@ class PostController extends Controller
                 return $query->where('number_of_rooms', $validatedData["number_of_rooms"]);
             });
 
+        // Sorting Logic
+        $query->when(isset($validatedData['sort_by']), function ($query) use ($validatedData) {
+            switch ($validatedData['sort_by']) {
+                case 'highest_price':
+                    return $query->orderBy('the_price', 'desc');
+                case 'lowest_price':
+                    return $query->orderBy('the_price', 'asc');
+                case 'most_recent':
+                    return $query->orderBy('created_at', 'desc');
+                case 'oldest':
+                    return $query->orderBy('created_at', 'asc');
+                default:
+                    return $query->orderBy('created_at', 'desc');
+            }
+        });
+
         $page = $request->input('page', 1);
 
-        $posts = $query->orderByDesc("created_at")->paginate(10, ['*'], 'page', $page);
+        $posts = $query->orderByDesc("created_at")->paginate(20, ['*'], 'page', $page);
         Log::debug("3");
         //@@@@@@@@@@//
         //@@@@@@@@@@//
@@ -251,10 +260,8 @@ class PostController extends Controller
         Log::debug("This Function Is Get Similar Posts");
 
         $validator = Validator::make($request->all(), [
-            "section_id" => "required|string",
-            "category_id" => "required|integer|exists:categories,id",
-            "subcategory_id" => "nullable|integer|exists:subcategories,id",
-            'region_id' => 'required|integer|exists:regions,id',
+            "section_id" => "required|integer|exists:sections,id",
+            'region_id' => 'nullable|integer|exists:regions,id',
         ]);
         Log::debug($validator->errors());
 
@@ -271,16 +278,14 @@ class PostController extends Controller
         //@@@@@@@@@@// BASE QUERY
         //@@@@@@@@@@//
         $posts = Post::with('medias')
-            ->where('parent_section_id', $validatedData["section_id"])
-            ->where('parent_category_id', $validatedData["category_id"])
-            ->where('region_id', $validatedData["region_id"]);
+            ->where('section_id', $validatedData["section_id"]);
 
 
-        if (is_null($validatedData["subcategory_id"])) {
+        if (is_null($validatedData["region_id"])) {
             $posts = $posts->orderBy('created_at', 'desc')->take(8)->get();
         } else {
             $posts = $posts->orderBy('created_at', 'desc')
-                ->where('subcategory_id', $validatedData["subcategory_id"])
+                ->where('region_id', $validatedData["region_id"])
                 ->take(8)->get();
         }
         //@@@@@@@@@@//
@@ -328,7 +333,7 @@ class PostController extends Controller
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         Log::debug("2");
-        $post = Post::with('medias', "user", "country", "city", "region")->find($validatedData['post_id']);
+        $post = Post::with('medias', "user", "section", "region")->find($validatedData['post_id']);
         if (!$post) {
             return response()->json([
                 'status' => false,
@@ -385,7 +390,7 @@ class PostController extends Controller
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         //@@@@@@@@@@//
-        $posts = Post::with('medias', "user", "country", "city", "region",)
+        $posts = Post::with('medias', "user", "section", "region",)
             ->where('user_id', $validatedData["user_id"])
             ->get();
         //@@@@@@@@@@//
@@ -410,34 +415,24 @@ class PostController extends Controller
 
         $validator = Validator::make($request->all(), [
             //
-            'parent_section_id' => 'required|string',
-            'parent_section_name' => 'required|string',
-            'parent_category_id' => 'required|integer|exists:categories,id',
-            'parent_category_name' => 'required|string',
-            'subcategory_name' => 'nullable|string',
-            'subcategory_id' => 'nullable|integer|exists:subcategories,id',
+            'section_id' => 'required|integer|exists:sections,id',
             //
-            'city_id' => 'required|integer|exists:cities,id',
-            'city_name' => 'required|string',
-            'city_ar_name' => 'required|string',
-            'city_en_name' => 'required|string',
-            'city_tr_name' => 'required|string',
-            'country_id' => 'required|integer|exists:countries,id',
-            'country_name' => 'required|string',
-            'region_id' => 'required|integer|exists:regions,id',
-            'region_name' => 'required|string',
+            'region_id' => 'nullable|integer|exists:regions,id',
+            'location_text' => 'nullable|string',
+            'location_description' => 'nullable|string',
+            'longitude' => 'nullable|string',
+            'latitude' => 'nullable|string',
             //
-            'title' => 'required|string',
-            'description' => 'required|string',
-            'post_type' => 'required|string',
-            'the_price' => 'nullable|string',
+            'title' => 'nullable|string',
+            'description' => 'nullable|string',
+            'the_price' => 'required|string',
+            'currency' => 'required|string',
             'is_active' => 'nullable|boolean',
             //
             'user_id' => 'required|integer|exists:users,id',
             'user_name' => 'required|string',
             'user_phone_number' => 'required|string',
             //
-            'is_car_forSale' => 'nullable|boolean',
             'is_car_new' => 'nullable|boolean',
             'is_gear_automatic' => 'nullable|boolean',
             'gas_type' => 'nullable|string',
@@ -447,7 +442,6 @@ class PostController extends Controller
             'is_realestate_for_family' => 'nullable|boolean',
             'is_realestate_furnitured' => 'nullable|boolean',
             'is_there_elevator' => 'nullable|boolean',
-            'realestate_type' => 'nullable|string',
             'number_of_rooms' => 'nullable|integer',
             'number_of_toiltes' => 'nullable|integer',
             'floor_number' => 'nullable|integer',
@@ -468,28 +462,18 @@ class PostController extends Controller
 
         $post =  Post::create(
             [
-                'parent_section_id' => $validatedData['parent_section_id'],
-                'parent_section_name' => $validatedData['parent_section_name'],
-                'parent_category_id' => $validatedData['parent_category_id'],
-                'parent_category_name' => $validatedData['parent_category_name'],
-                'subcategory_id' => $validatedData['subcategory_id'],
-                'subcategory_name' => $validatedData['subcategory_name'],
+                'section_id' => $validatedData['section_id'],
                 //
-                'city_id' => $validatedData['city_id'],
-                'city_name' => $validatedData['city_name'],
-                'city_ar_name' => $validatedData['city_ar_name'],
-                'city_en_name' => $validatedData['city_en_name'],
-                'city_tr_name' => $validatedData['city_tr_name'],
-                'country_id' => $validatedData['country_id'],
-                'country_name' => $validatedData['country_name'],
                 'region_id' => $validatedData['region_id'],
-                'region_name' => $validatedData['region_name'],
+                'location_text' => $validatedData['location_text'],
+                'location_description' => $validatedData['location_description'],
+                'latitude' => $validatedData['latitude'],
+                'longitude' => $validatedData['longitude'],
                 //
                 'title' => $validatedData['title'],
                 'description' => $validatedData['description'],
-                'post_type' => $validatedData['post_type'],
                 'the_price' => $validatedData['the_price'],
-                'images' => null,
+                'currency' => $validatedData['currency'],
                 'is_active' => true,
                 'is_special' => false,
                 'special_level' => "0",
@@ -499,7 +483,6 @@ class PostController extends Controller
                 'user_name' => $validatedData['user_name'],
                 'user_phone_number' => $validatedData['user_phone_number'],
                 //
-                'is_car_forSale' => $validatedData['is_car_forSale'],
                 'is_car_new' => $validatedData['is_car_new'],
                 'is_gear_automatic' => $validatedData['is_gear_automatic'],
                 'gas_type' => $validatedData['gas_type'],
@@ -509,7 +492,6 @@ class PostController extends Controller
                 'is_realestate_for_family' => $validatedData['is_realestate_for_family'],
                 'is_realestate_furnitured' => $validatedData['is_realestate_furnitured'],
                 'is_there_elevator' => $validatedData['is_there_elevator'],
-                'realestate_type' => $validatedData['realestate_type'],
                 'number_of_rooms' => $validatedData['number_of_rooms'],
                 'number_of_toiltes' => $validatedData['number_of_toiltes'],
                 'floor_number' => $validatedData['floor_number'],
@@ -538,8 +520,6 @@ class PostController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'data successfully created',
-            // 'post_object' => $post,
-            // 'errors' => $validator->errors(),
         ]);
     }
 
@@ -556,34 +536,25 @@ class PostController extends Controller
         $validator = Validator::make($request->all(), [
             //
             "post_id" => "required|integer|exists:posts,id",
-            'parent_section_id' => 'required|string',
-            'parent_section_name' => 'required|string',
-            'parent_category_id' => 'required|integer|exists:categories,id',
-            'parent_category_name' => 'required|string',
-            'subcategory_name' => 'nullable|string',
-            'subcategory_id' => 'nullable|integer|exists:subcategories,id',
             //
-            'city_id' => 'required|integer|exists:cities,id',
-            'city_name' => 'required|string',
-            'city_ar_name' => 'required|string',
-            'city_en_name' => 'required|string',
-            'city_tr_name' => 'required|string',
-            'country_id' => 'required|integer|exists:countries,id',
-            'country_name' => 'required|string',
-            'region_id' => 'required|integer|exists:regions,id',
-            'region_name' => 'required|string',
+            'section_id' => 'required|integer|exists:sections,id',
             //
-            'title' => 'required|string',
-            'description' => 'required|string',
-            'post_type' => 'required|string',
-            'the_price' => 'nullable|string',
+            'region_id' => 'nullable|integer|exists:regions,id',
+            'location_text' => 'nullable|string',
+            'location_description' => 'nullable|string',
+            'longitude' => 'nullable|string',
+            'latitude' => 'nullable|string',
+            //
+            'title' => 'nullable|string',
+            'description' => 'nullable|string',
+            'the_price' => 'required|string',
+            'currency' => 'required|string',
             'is_active' => 'nullable|boolean',
             //
             'user_id' => 'required|integer|exists:users,id',
             'user_name' => 'required|string',
             'user_phone_number' => 'required|string',
             //
-            'is_car_forSale' => 'nullable|boolean',
             'is_car_new' => 'nullable|boolean',
             'is_gear_automatic' => 'nullable|boolean',
             'gas_type' => 'nullable|string',
@@ -593,7 +564,6 @@ class PostController extends Controller
             'is_realestate_for_family' => 'nullable|boolean',
             'is_realestate_furnitured' => 'nullable|boolean',
             'is_there_elevator' => 'nullable|boolean',
-            'realestate_type' => 'nullable|string',
             'number_of_rooms' => 'nullable|integer',
             'number_of_toiltes' => 'nullable|integer',
             'floor_number' => 'nullable|integer',
@@ -628,28 +598,18 @@ class PostController extends Controller
 
         $post->update(
             [
-                'parent_section_id' => $validatedData['parent_section_id'],
-                'parent_section_name' => $validatedData['parent_section_name'],
-                'parent_category_id' => $validatedData['parent_category_id'],
-                'parent_category_name' => $validatedData['parent_category_name'],
-                'subcategory_id' => $validatedData['subcategory_id'],
-                'subcategory_name' => $validatedData['subcategory_name'],
+                'section_id' => $validatedData['section_id'],
                 //
-                'city_id' => $validatedData['city_id'],
-                'city_name' => $validatedData['city_name'],
-                'city_ar_name' => $validatedData['city_ar_name'],
-                'city_en_name' => $validatedData['city_en_name'],
-                'city_tr_name' => $validatedData['city_tr_name'],
-                'country_id' => $validatedData['country_id'],
-                'country_name' => $validatedData['country_name'],
                 'region_id' => $validatedData['region_id'],
-                'region_name' => $validatedData['region_name'],
+                'location_text' => $validatedData['location_text'],
+                'location_description' => $validatedData['location_description'],
+                'latitude' => $validatedData['latitude'],
+                'longitude' => $validatedData['longitude'],
                 //
                 'title' => $validatedData['title'],
                 'description' => $validatedData['description'],
-                'post_type' => $validatedData['post_type'],
                 'the_price' => $validatedData['the_price'],
-                'images' => null,
+                'currency' => $validatedData['currency'],
                 'is_active' => true,
                 'is_special' => false,
                 'special_level' => "0",
@@ -659,7 +619,6 @@ class PostController extends Controller
                 'user_name' => $validatedData['user_name'],
                 'user_phone_number' => $validatedData['user_phone_number'],
                 //
-                'is_car_forSale' => $validatedData['is_car_forSale'],
                 'is_car_new' => $validatedData['is_car_new'],
                 'is_gear_automatic' => $validatedData['is_gear_automatic'],
                 'gas_type' => $validatedData['gas_type'],
@@ -669,12 +628,9 @@ class PostController extends Controller
                 'is_realestate_for_family' => $validatedData['is_realestate_for_family'],
                 'is_realestate_furnitured' => $validatedData['is_realestate_furnitured'],
                 'is_there_elevator' => $validatedData['is_there_elevator'],
-                'realestate_type' => $validatedData['realestate_type'],
                 'number_of_rooms' => $validatedData['number_of_rooms'],
                 'number_of_toiltes' => $validatedData['number_of_toiltes'],
                 'floor_number' => $validatedData['floor_number'],
-                //
-                // 'search_word' => null,
             ],
         );
 

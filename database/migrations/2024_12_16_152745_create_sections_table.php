@@ -11,12 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cities', function (Blueprint $table) {
+        Schema::create('sections', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("country_id")->constrained()->cascadeOnDelete();
             $table->string("ar_name");
-            $table->string("en_name");
-            $table->string("tr_name");
+            $table->string("en_name")->nullable();
+            $table->string("tr_name")->nullable();
+            $table->string("image")->nullable();
+            $table->foreignId("parent_section_id")->nullable();
+            $table->string("parent_section_name")->nullable();
+            $table->integer("order_number");
+            $table->string("type");
             $table->boolean("is_active");
             $table->timestamps();
         });
@@ -27,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('cities');
+        Schema::dropIfExists('sections');
     }
 };

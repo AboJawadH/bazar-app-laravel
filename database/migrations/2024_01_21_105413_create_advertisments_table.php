@@ -14,19 +14,15 @@ return new class extends Migration
     {
         Schema::create('advertisments', function (Blueprint $table) {
             $table->id();
+            $table->foreignId("region_id")->nullable();
+            $table->foreignId("section_id")->nullable();
+            $table->string("image");
             $table->string("title")->nullable();
             $table->string("importance")->nullable();
-            $table->string("ad_type")->nullable();
-            $table->foreignId("city_id")->nullable();
-            $table->string("city_name")->nullable();
-            $table->foreignId("country_id")->nullable();
-            $table->string("country_name")->nullable();
-            $table->string("image")->nullable();
             $table->string("ads_link")->nullable();
-            $table->boolean("is_active")->nullable();
-            $table->boolean("is_general")->nullable();
             $table->foreignId("post_id")->nullable();
             $table->string("post_title")->nullable();
+            $table->boolean("is_active")->nullable();
             $table->timestamps();
         });
     }

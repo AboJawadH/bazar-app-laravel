@@ -11,9 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('posts', function (Blueprint $table) {
-            $table->foreignId("region_id")->nullable();
-            $table->string("region_name")->nullable();
+        Schema::table('users', function (Blueprint $table) {
         });
     }
 
@@ -22,8 +20,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('posts', function (Blueprint $table) {
-            //
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('email');
         });
     }
 };

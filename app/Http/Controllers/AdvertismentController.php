@@ -46,12 +46,12 @@ class AdvertismentController extends Controller
         $searchWord = $validatedData["search_word"];
 
         if (is_null($validatedData["search_word"])) {
-            $ads = Advertisment::orderBy('importance', 'desc')->paginate(3, ['*'], 'page', $page);
+            $ads = Advertisment::orderBy('importance', 'desc')->paginate(10, ['*'], 'page', $page);
         } else {
             $ads = Advertisment::where(function ($query) use ($searchWord) {
                 $query->where('title', 'LIKE', '%' . $searchWord . '%');
             })
-                ->orderBy('importance', 'desc')->paginate(3, ['*'], 'page', $page);
+                ->orderBy('importance', 'desc')->paginate(10, ['*'], 'page', $page);
         }
         // the reason i am using this is to avoid all the extra info that comes with paginate (instead of using a resourse)
         $adsData = $ads->items();
@@ -65,143 +65,26 @@ class AdvertismentController extends Controller
             // 'errors' => $validator->errors(),
         ]);
     }
-
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@            FETCH           @@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
-    public function getAdvertisementsByLocation(Request $request)
-
+    public function getAdsForHomePage()
     {
-        Log::debug("This Function Is Fetch Ads Based On Location");
-        Log::debug("0");
-        //@@@@@@@@@//@@@@@@@@@//
-        //@@@@@@@@@//@@@@@@@@@//
-        //@@@@@@@@@//@@@@@@@@@//
-        $validator = Validator::make($request->all(), [
-            'city_id' => 'nullable|integer|exists:cities,id',
-            'country_id' => 'nullable|integer|exists:countries,id',
-            'region_id' => 'nullable|integer|exists:regions,id',
-        ]);
-        Log::debug($validator->errors());
+        Log::debug("------------------------------------------");
+        Log::debug("This function is get all ads for home page");
+        Log::debug("------------------------------------------");
 
+        $ads = Advertisment::whereNull(columns: 'region_id')->where("is_active", true)->get();
         Log::debug("1");
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Wrong parameters',
-                'errors' => Arr::flatten($validator->errors()->toArray()),
-            ]);
-        }
-        // Log::debug($validator->errors());
-        Log::debug("2");
-
-        $validatedData = $validator->validated();
-
-        $country_id = $validatedData["country_id"];
-        $city_id = $validatedData["city_id"];
-        $region_id = $validatedData["region_id"];
-
-        $ads =  Advertisment::query()
-            ->where('is_active', true)  // Fetch only active ads
-            ->where(function ($query) use ($country_id, $city_id, $region_id) {
-                $query->where('ad_type', 'general')  // Fetch general ads
-                    ->orWhere(function ($query) use ($country_id) {
-                        if ($country_id) {
-                            $query->where('ad_type', 'country')
-                                ->where('country_id', $country_id);
-                        }
-                    })
-                    ->orWhere(function ($query) use ($city_id) {
-                        if ($city_id) {
-                            $query->where('ad_type', 'city')
-                                ->where('city_id', $city_id);
-                        }
-                    })
-                    ->orWhere(function ($query) use ($region_id) {
-                        if ($region_id) {
-                            $query->where('ad_type', 'region')
-                                ->where('region_id', $region_id);
-                        }
-                    });
-            })
-            ->get();
-
-
-        //@@@@@@@@@//@@@@@@@@@//
-        //@@@@@@@@@//@@@@@@@@@//
-        //@@@@@@@@@//@@@@@@@@@//
-        // general
-        // $ads = Advertisment::All();
-
-        // $queryGeneral = Advertisment::query()->where("is_general", true)->where('is_active', true);
-        // $querySpecial = Advertisment::query()->where("is_general", false)->where('is_active', true);
-        // // country
-        // if (!is_null($validatedData["country_id"]) && is_null($validatedData["city_id"])) {
-        //     Log::debug("there is only country");
-        //     $querySpecial->where('country_id', $validatedData["country_id"])
-        //         ->whereHas("country", function ($query) {
-        //             $query->where('is_active', true);
-        //         })
-        //         ->where('city_id', null);
-        // }
-        // // city
-        // if ($validatedData["country_id"] !== null && $validatedData["city_id"] !== null) {
-        //     Log::debug("there is country and city");
-
-        //     $countryId = $validatedData["country_id"];
-        //     $cityId = $validatedData["city_id"];
-
-        //     $querySpecial->where(function ($query) use ($countryId, $cityId) {
-        //         $query->where(function ($query) use ($countryId, $cityId) {
-        //             $query->where('country_id', $countryId)
-        //                 ->whereHas("country", function ($query) {
-        //                     $query->where('is_active', true);
-        //                 })
-        //                 ->where('city_id', $cityId)
-        //                 ->whereHas("city", function ($query) {
-        //                     $query->where('is_active', true);
-        //                 });
-        //         })->orWhere(function ($query) use ($countryId) {
-        //             $query->where('country_id', $countryId)
-        //                 ->whereHas("country", function ($query) {
-        //                     $query->where('is_active', true);
-        //                 })
-        //                 ->whereNull('city_id');
-        //         });
-        //     });
-        //     // $querySpecial
-        //     // ->where('country_id', $validatedData["country_id"])
-        //     //     ->whereHas("country", function ($query) {
-        //     //         $query->where('is_active', true);
-        //     //     })
-        //     //     ->where('city_id', $validatedData["city_id"])
-        //     //     ->whereHas("city", function ($query) {
-        //     //         $query->where('is_active', true);
-        //     //     });
-        //     // ->orWhere('country_id', $validatedData["country_id"])
-        //     // ->orWhereHas("country", function ($query) {
-        //     //     $query->where('is_active', true);
-        //     // });
-        // }
-        // $adsGeneral = $queryGeneral->get();
-        // $adsSpecial = $querySpecial->get();
-        // $ads = $adsGeneral->merge($adsSpecial); // Merge both collections
-
-        Log::debug("3");
-
-        //@@@@@@@@@//@@@@@@@@@//
-        //@@@@@@@@@//@@@@@@@@@//
-        //@@@@@@@@@//@@@@@@@@@//
         return response()->json([
             'status' => true,
             'message' => 'data fetched successfully ',
             'ads' => $ads,
-            // 'errors' => $validator->errors(),
         ]);
     }
+
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
@@ -216,19 +99,13 @@ class AdvertismentController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'nullable|string',
             'importance' => 'nullable|string',
-            'ad_type' => 'nullable|string',
-            'city_id' => 'nullable|integer|exists:cities,id',
-            'city_name' => 'nullable|string',
-            'country_id' => 'nullable|integer|exists:countries,id',
-            'country_name' => 'nullable|string',
             'region_id' => 'nullable|integer|exists:regions,id',
-            'region_name' => 'nullable|string',
+            'section_id' => 'nullable|integer|exists:sections,id',
             'post_id' => 'nullable|integer',
             'post_title' => 'nullable|string',
             'image' => 'nullable|string',
             'ads_link' => 'nullable|string',
             'is_active' => 'nullable|boolean',
-            'is_general' => 'nullable|boolean',
         ]);
         Log::debug($validator->errors());
         Log::debug("1");
@@ -253,26 +130,12 @@ class AdvertismentController extends Controller
             $imageData = str_replace(' ', '+', $imageData);
             $imageData = base64_decode($base64Image);
 
-            // $extension = pathinfo($base64Image, "png");
-
-            // Generate a unique filename for the image
             $imageName = time() . '.' . "png";
-            // $imageName =  Str::random().'.'.$base64Image->getClientOriginalExtension();
-            // Specify the storage path where you want to save the image
-            // $storagePath = public_path('storage/ads' . $imageName);
-            // $storagePath = storage_path('app/public/ads/' . $imageName);
-            // $imageData->storePubliclyAs('ads', $imageName);
-            // if (!Storage::disk('public')->exists('ads')) {
-            //     return Storage::disk('public')->makeDirectory('ads'); // Create the folder if needed
-            // }
+
             Storage::disk('public')->put('ads/' . $imageName, $imageData);
 
-            // Save the image to the specified path
-            // file_put_contents($storagePath, $imageData);
-            // $request->file("image_link")->store("ads", "public");
-            // $imageUrl = Storage::disk('public')->url('ads/' . $imageName);
+
             $imageUrl = asset('storage/ads/' . $imageName);
-            // $imagePath = "ads/" . $imageName;
         }
 
 
@@ -280,19 +143,13 @@ class AdvertismentController extends Controller
             [
                 'title' => $validatedData['title'],
                 'importance' => $validatedData['importance'],
-                'ad_type' => $validatedData['ad_type'],
-                'city_id' => $validatedData['city_id'],
-                'city_name' => $validatedData['city_name'],
-                'country_id' => $validatedData['country_id'],
-                'country_name' => $validatedData['country_name'],
                 'region_id' => $validatedData['region_id'],
-                'region_name' => $validatedData['region_name'],
+                'section_id' => $validatedData['section_id'],
                 'post_id' => $validatedData['post_id'],
                 'post_title' => $validatedData['post_title'],
                 'image' => $imageUrl ?? null,
                 'ads_link' => $validatedData['ads_link'],
                 'is_active' => (bool) $validatedData['is_active'],
-                'is_general' => (bool) $validatedData['is_general'],
             ],
         );
         Log::debug("4");
@@ -318,16 +175,12 @@ class AdvertismentController extends Controller
             "ad_id" => "required|integer|exists:advertisments,id",
             'title' => 'nullable|string',
             'importance' => 'nullable|string',
-            'ad_type' => 'nullable|string',
-            'city_id' => 'nullable|integer|exists:cities,id',
-            'city_name' => 'nullable|string',
-            'country_id' => 'nullable|integer|exists:countries,id',
-            'country_name' => 'nullable|string',
             'post_id' => 'nullable|integer',
             'image' => 'nullable|string',
             'ads_link' => 'nullable|string',
+            'region_id' => 'nullable|integer|exists:regions,id',
+            'section_id' => 'nullable|integer|exists:sections,id',
             'is_active' => 'nullable|boolean',
-            'is_general' => 'nullable|boolean',
         ]);
         Log::debug("1");
         Log::debug($validator->errors());
@@ -377,16 +230,12 @@ class AdvertismentController extends Controller
             [
                 'title' => $validatedData['title'],
                 'importance' => $validatedData['importance'],
-                'ad_type' => $validatedData['ad_type'],
-                'city_id' => $validatedData['city_id'],
-                'city_name' => $validatedData['city_name'],
-                'country_id' => $validatedData['country_id'],
-                'country_name' => $validatedData['country_name'],
                 'post_id' => $validatedData['post_id'],
                 'image' => $imageUrl ?? $ad->image,
                 'ads_link' => $validatedData['ads_link'],
+                'region_id' => $validatedData['region_id'],
+                'section_id' => $validatedData['section_id'],
                 'is_active' => (bool) $validatedData['is_active'],
-                'is_general' => (bool) $validatedData['is_general'],
             ],
         );
         Log::debug("7");
