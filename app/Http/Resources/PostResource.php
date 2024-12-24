@@ -39,7 +39,7 @@ class PostResource extends JsonResource
                 return $this->user->name;
             }),
             "user_phone_number" => $this->whenLoaded('user', function () {
-                return $this->user->user_phone_number;
+                return $this->user->phone_number;
             }),
 
             //
