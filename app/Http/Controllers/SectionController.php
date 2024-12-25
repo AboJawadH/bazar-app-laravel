@@ -160,7 +160,7 @@ class SectionController extends Controller
 
         $section =  Section::create(
             [
-                'image' => $imageUrl,
+                'image' => $imageUrl ?? null,
                 'ar_name' => $validatedData['ar_name'],
                 'en_name' => $validatedData['en_name'],
                 'tr_name' => $validatedData['tr_name'],
