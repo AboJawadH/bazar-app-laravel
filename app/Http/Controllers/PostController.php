@@ -67,20 +67,19 @@ class PostController extends Controller
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         $sectionIds = [];
+
         if (!is_null($validatedData['section_id'])) {
             // Get the main section ID
             $sectionIds[] = $validatedData['section_id'];
             Log::debug("Main section ID: " . $validatedData['section_id']);
 
-            // Fetch all subsections IDs
-            $subsectionIds = Section::where('parent_section_id', $validatedData['section_id'])
-                ->pluck('id')
-                ->toArray();
+            // Fetch all nested subsection IDs
+            $allSubsectionIds = $this->getAllSubsections($validatedData['section_id']);
 
-            Log::debug("Fetched subsection IDs: " . json_encode($subsectionIds));
+            Log::debug("Fetched all subsection IDs recursively: " . json_encode($allSubsectionIds));
 
-            // Merge subsection IDs with the main section ID
-            $sectionIds = array_merge($sectionIds, $subsectionIds);
+            // Merge all subsection IDs with the main section ID
+            $sectionIds = array_merge($sectionIds, $allSubsectionIds);
             Log::debug("All section IDs for query: " . json_encode($sectionIds));
         }
         //@@@@@@@@@@//
@@ -166,6 +165,18 @@ class PostController extends Controller
             'userFavoritePosts' => $userFavoritePostIds,
             // 'errors' => $validator->errors(),
         ]);
+    }
+    private function getAllSubsections($parentId)
+    {
+        $subsectionIds = Section::where('parent_section_id', $parentId)
+            ->pluck('id')
+            ->toArray();
+
+        foreach ($subsectionIds as $subsectionId) {
+            $subsectionIds = array_merge($subsectionIds, $this->getAllSubsections($subsectionId));
+        }
+
+        return $subsectionIds;
     }
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
