@@ -22,6 +22,7 @@ class Post extends Model
         "is_special",
         "special_level",
         "is_favored",
+        "is_closed",
         //
         "user_id",
         "user_name",
@@ -57,12 +58,14 @@ class Post extends Model
         'is_active' => 'boolean',
         'is_special' => 'boolean',
         'is_favored' => 'boolean',
+        'is_closed' => 'boolean',
         'is_car_new' => 'boolean',
         'is_gear_automatic' => 'boolean',
         'is_realestate_for_sale' => 'boolean',
         'is_realestate_for_family' => 'boolean',
         'is_realestate_furnitured' => 'boolean',
         'is_there_elevator' => 'boolean',
+        'created_at' => 'datetime',
     ];
 
     //=======================//

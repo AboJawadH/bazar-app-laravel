@@ -9,61 +9,75 @@ class AppSettingController extends Controller
 {
     public function createAppSetting(Request $request)
     {
-        // Validate input
-        // $request->validate([
-        //     'is_maintenance_on' => 'required|boolean',
-        // ]);
+        $validatedData =  $request->validate([
+            'is_maintenance_on' => 'required|boolean',
+            'maintenance_message' => 'nullable|string',
+            'build_number' => 'nullable|string',
+            'update_type' => 'nullable|string',
+            'font_type' => 'nullable|string',
+            'day_color' => 'nullable|string',
+            'night_color' => 'nullable|string',
+        ]);
 
         // Ensure only one record exists
-        $existingSetting = AppSetting::first();
+        $setting = AppSetting::first();
 
-        if ($existingSetting) {
-            return response()->json([
-                'status' => false,
-                'message' => 'App setting record already exists.',
-            ], 400);
+        if ($setting) {
+            // Update the existing record
+            $setting->update($validatedData);
+            $message = 'App setting record updated successfully.';
+        } else {
+            // Create a new record
+            $setting = AppSetting::create($validatedData);
+            $message = 'App setting record created successfully.';
         }
-
-        // Create new record
-        $setting = AppSetting::create([
-            'is_maintenance_on' => false,
-        ]);
 
         return response()->json([
             'status' => true,
-            'message' => 'App setting record created successfully.',
-            // 'data' => $setting,
-        ], 201);
+            'message' => $message,
+            'data' => $setting,
+        ], 200);
     }
 
     /**
      * Update an existing App Setting record.
      */
-    public function updateAppSetting(Request $request)
+    public function checkForUpdate(Request $request)
     {
-        // Validate input
-        $request->validate([
-            'is_maintenance_on' => 'required|boolean',
+        // Validate that the version number is provided
+        $validatedData = $request->validate([
+            'version_number' => 'required|string',
         ]);
 
-        // Find the first AppSetting record
-        $setting = AppSetting::first();
+        $currentVersion = $validatedData['version_number'];
+        $appSettings = AppSetting::first();
 
-        if (!$setting) {
+        // If no settings exist, return 'no_update'
+        if (!$appSettings || !$appSettings->build_number) {
             return response()->json([
-                'status' => false,
-                'message' => 'No app setting record found. Please create one first.',
-            ]);
+                'status' => true,
+                'update_type' => 'no_update',
+            ], 200);
         }
 
-        // Update the setting
-        $setting->is_maintenance_on = $request->is_maintenance_on;
-        $setting->save();
+        $latestVersion = $appSettings->build_number;
+        $updateType = $appSettings->update_type; // 'mandatory' or 'optional'
 
+        // Compare versions
+        if (version_compare($currentVersion, $latestVersion, '>=')) {
+            // The app is up-to-date
+            return response()->json([
+                'status' => true,
+                'update_type' => 'no_update',
+                'latest_version' => $latestVersion,
+            ], 200);
+        }
+
+        // If the version is outdated, return the update type
         return response()->json([
             'status' => true,
-            'message' => 'App setting updated successfully.',
-            // 'data' => $setting,
-        ]);
+            'update_type' => $updateType,
+            'latest_version' => $latestVersion,
+        ], 200);
     }
 }

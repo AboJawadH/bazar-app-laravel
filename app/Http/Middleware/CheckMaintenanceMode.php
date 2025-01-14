@@ -21,14 +21,16 @@ class CheckMaintenanceMode
         $isMaintenanceOn = AppSetting::first()?->is_maintenance_on ?? false;
 
         if ($isMaintenanceOn) {
+            // Get the custom maintenance message if available
+            $maintenanceMessage = AppSetting::first()?->maintenance_message ?? 'التطبيق الآن في وضع الصيانة ، الرجاء المحاولة لاحقا';
+
             return Response::json([
                 'status' => false,
-                'message' => 'التطبيق الآن في وضع الصيانة ، الرجاء المحاولة لاحقا',
-                'errors' => ['التطبيق الآن في وضع الصيانة ، الرجاء المحاولة لاحقا'],
+                'message' => $maintenanceMessage,
+                'errors' => [$maintenanceMessage],
             ], 200);
         }
 
         return $next($request);
-
     }
 }

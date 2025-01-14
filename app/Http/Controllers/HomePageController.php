@@ -8,6 +8,7 @@ use App\Models\Post;
 use App\Models\Section;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -87,29 +88,47 @@ class HomePageController extends Controller
             $ads = $adsQuery->get();
         }
         // ---------------------- //
-        // ---------------------- // posts
+        // ---------------------- // special posts
         // ---------------------- //
         $page = $request->input('page', 1);
-        $postsQuery = Post::with('medias', "section", "region", "user")
-            ->where("is_active", true)
+        $specialPostsQuery = Post::with('medias', 'section', 'region', 'user')
+            ->where('is_active', true)
             ->where('is_special', true)
-            ->orderByDesc("created_at");
+            ->where('is_closed', false)
+            ->orderByDesc('created_at');
 
-        // Conditional logic for section filter
+        // Conditional logic for section filter (Special Posts)
         if (!is_null($validatedData['section_id'])) {
-            $postsQuery->where('section_id', $validatedData['section_id']);
+            $specialPostsQuery->where('section_id', $validatedData['section_id']);
         }
 
-        $posts = $postsQuery->paginate(20, ['*'], 'page', $page);
+        $specialPosts = $specialPostsQuery->limit(50)->get();
+        // ---------------------- //
+        // ---------------------- // recent posts
+        // ---------------------- //
+        $recentPostsQuery = Post::with('medias', 'section', 'region', 'user')
+            ->where('is_active', true)
+            ->where('is_special', false)
+            ->where('is_closed', false)
+            ->orderByDesc('created_at');
+
+        // Conditional logic for section filter (Recent Posts)
+        if (!is_null($validatedData['section_id'])) {
+            $recentPostsQuery->where('section_id', $validatedData['section_id']);
+        }
+
+        $recentPosts = $recentPostsQuery->paginate(20, ['*'], 'page', $page);
+
         // ---------------------- //
         // ---------------------- //
         // ---------------------- //
         Log::debug("1");
         return response()->json([
             'status' => true,
-            'message' => 'data fetched successfully ',
+            'message' => 'Data fetched successfully',
             'ads' => $ads,
-            'posts' => PostResource::collection($posts),
+            'special_posts' => PostResource::collection($specialPosts),
+            'recent_posts' => PostResource::collection($recentPosts),
         ]);
     }
 }

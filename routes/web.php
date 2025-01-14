@@ -42,7 +42,8 @@ use Illuminate\Support\Facades\Route;
 | App Settings Routes
 |--------------------------------------------------------------------------
 */
-Route::post('maintenance-mode/update', [AppSettingController::class, "updateAppSetting"]);
+Route::post('maintenance-mode/update', [AppSettingController::class, "createAppSetting"]);
+Route::post('check-for-update', [AppSettingController::class, "checkForUpdate"]);
 
 /*
 |--------------------------------------------------------------------------
@@ -127,7 +128,7 @@ Route::post('section/update', [SectionController::class, "update"]);
 Route::post('post/fetch', [PostController::class, "index"])->middleware(['maintenance.check']);
 Route::post('posts/filter', [PostController::class, "filterPosts"]);
 Route::post('post/fetch-posts-for-user', [PostController::class, "getPostsForUser"])
-    ->middleware(['user-or-admin', 'maintenance.check']);
+    ->middleware(['maintenance.check']);
 // Route::post('post/fetch-posts-for-user', [PostController::class, "getPostsForUser"])->middleware(['user-or-admin']);
 Route::post('post/fetch-all-posts', [PostController::class, "getAllPosts"])->middleware(['maintenance.check']);
 Route::post('post/fetch-similar-posts', [PostController::class, "getSimilarPosts"])->middleware(['maintenance.check']);
@@ -140,6 +141,7 @@ Route::post('post/delete', [PostController::class, "delete"])->middleware(['auth
 Route::post('post/favor-post', [PostController::class, "favorPost"])->middleware(['auth:sanctum','maintenance.check']);
 Route::post('post/fetch-favored-post', [PostController::class, "getFavoredPosts"])->middleware(['auth:sanctum','maintenance.check']);
 Route::post('post/special-post', [PostController::class, "specialPost"]);
+Route::post('post/close-post', [PostController::class, "closePost"])->middleware(['auth:sanctum','maintenance.check']);
 Route::post('post/fetch-special-posts', [PostController::class, "getSpeacialPosts"]);
 Route::post('post/fetch-recent-posts', [PostController::class, "getRecentPosts"]);
 Route::post('post/block', [PostController::class, "blockPost"])->middleware(['auth:sanctum-admin']);

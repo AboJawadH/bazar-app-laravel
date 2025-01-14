@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Models\Chat;
+use App\Models\Section;
 
 use function PHPUnit\Framework\isNull;
 
@@ -63,12 +64,33 @@ class PostController extends Controller
 
         $validatedData = $validator->validated();
         //@@@@@@@@@@//
+        //@@@@@@@@@@//
+        //@@@@@@@@@@//
+        $sectionIds = [];
+        if (!is_null($validatedData['section_id'])) {
+            // Get the main section ID
+            $sectionIds[] = $validatedData['section_id'];
+            Log::debug("Main section ID: " . $validatedData['section_id']);
+
+            // Fetch all subsections IDs
+            $subsectionIds = Section::where('parent_section_id', $validatedData['section_id'])
+                ->pluck('id')
+                ->toArray();
+
+            Log::debug("Fetched subsection IDs: " . json_encode($subsectionIds));
+
+            // Merge subsection IDs with the main section ID
+            $sectionIds = array_merge($sectionIds, $subsectionIds);
+            Log::debug("All section IDs for query: " . json_encode($sectionIds));
+        }
+        //@@@@@@@@@@//
         //@@@@@@@@@@// BASE QUERY
         //@@@@@@@@@@//
+
         Log::debug("1");
-        $posts = Post::with('medias', "section", "region", "user")
-            ->when(!is_null($validatedData["section_id"]), function ($query) use ($validatedData) {
-                return $query->where('section_id', $validatedData["section_id"]);
+        $posts = Post::with('medias', "section", "region", "user")->where('is_closed', false)
+            ->when(!empty($sectionIds), function ($query) use ($sectionIds) {
+                return $query->whereIn('section_id', $sectionIds);
             });
 
         Log::debug("2");
@@ -100,12 +122,14 @@ class PostController extends Controller
             });
 
         // Sorting Logic
+        // dont worry about this weird logic for the prices this is only because
+        // the price is stored as a string and that was not sorting fine
         $query->when(isset($validatedData['sort_by']), function ($query) use ($validatedData) {
             switch ($validatedData['sort_by']) {
                 case 'highest_price':
-                    return $query->orderBy('the_price', 'desc');
+                    return $query->orderByRaw('CAST(the_price AS DECIMAL(10,2)) DESC');
                 case 'lowest_price':
-                    return $query->orderBy('the_price', 'asc');
+                    return $query->orderByRaw('CAST(the_price AS DECIMAL(10,2)) ASC');
                 case 'most_recent':
                     return $query->orderBy('created_at', 'desc');
                 case 'oldest':
@@ -150,13 +174,13 @@ class PostController extends Controller
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     public function filterPosts(Request $request)
     {
+        Log::debug("---------------------------------------------");
         Log::debug("This function is filter posts for dash board");
-        Log::debug("0");
+        Log::debug("---------------------------------------------");
 
         $validator = Validator::make($request->all(), [
-            "section_id" => "nullable|string",
-            "category_id" => "nullable|integer|exists:categories,id",
-            "subcategory_id" => "nullable|integer|exists:subcategories,id",
+            "section_id" => 'nullable|integer|exists:sections,id',
+            'region_id' => 'nullable|integer|exists:regions,id',
             //
             "search_word" => "nullable|string",
             //
@@ -177,31 +201,28 @@ class PostController extends Controller
         //@@@@@@@@@@//
         //@@@@@@@@@@// BASE QUERY
         //@@@@@@@@@@//
-        $posts = Post::with('medias', "user", "region");
+        $posts = Post::with('medias', "user", "region", "section");
 
 
         $query = $posts
             // SECTION
             ->when(!is_null($validatedData["section_id"]), function ($query) use ($validatedData) {
-                return $query->where('parent_section_id', $validatedData["section_id"]);
+                return $query->where('section_id', $validatedData["section_id"]);
             })
-            // CATEGORY
-            ->when(!is_null($validatedData["category_id"]), function ($query) use ($validatedData) {
-                return $query->where('parent_category_id', $validatedData["category_id"]);
-            })
-            // SUBCATEGORY
-            ->when(!is_null($validatedData["subcategory_id"]), function ($query) use ($validatedData) {
-                return $query->where('subcategory_id', $validatedData["subcategory_id"]);
+            // REGION
+            ->when(!is_null($validatedData["region_id"]), function ($query) use ($validatedData) {
+                return $query->where('region_id', $validatedData["region_id"]);
             })
             // SEARCH
             ->when(!is_null($validatedData["search_word"]), function ($query) use ($validatedData) {
-                return $query->where('title', 'LIKE', '%' . $validatedData["search_word"] . '%');
+                return $query->where('title', 'LIKE', '%' . $validatedData["search_word"] . '%')
+                    ->orWhere('id', $validatedData["search_word"]);
             });
 
 
         $page = $request->input('page', 1);
 
-        $posts = $query->orderByDesc("created_at")->paginate(3, ['*'], 'page', $page);
+        $posts = $query->orderByDesc("created_at")->paginate(10, ['*'], 'page', $page);
         //@@@@@@@@@@//
         //@@@@@@@@@@//
         //@@@@@@@@@@//
@@ -282,11 +303,11 @@ class PostController extends Controller
 
 
         if (is_null($validatedData["region_id"])) {
-            $posts = $posts->orderBy('created_at', 'desc')->take(8)->get();
+            $posts = $posts->orderBy('created_at', 'desc')->take(10)->get();
         } else {
             $posts = $posts->orderBy('created_at', 'desc')
                 ->where('region_id', $validatedData["region_id"])
-                ->take(8)->get();
+                ->take(10)->get();
         }
         //@@@@@@@@@@//
         //@@@@@@@@@@//
@@ -392,6 +413,7 @@ class PostController extends Controller
         //@@@@@@@@@@//
         $posts = Post::with('medias', "user", "section", "region",)
             ->where('user_id', $validatedData["user_id"])
+            ->orderByDesc("created_at")
             ->get();
         //@@@@@@@@@@//
         //@@@@@@@@@@//
@@ -611,7 +633,7 @@ class PostController extends Controller
                 'the_price' => $validatedData['the_price'],
                 'currency' => $validatedData['currency'],
                 'is_active' => true,
-                'is_special' => false,
+                'is_special' => $post->is_special,
                 'special_level' => "0",
                 'is_favored' => false,
                 //
@@ -1133,6 +1155,50 @@ class PostController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Active status toggled successfully',
+            ]);
+        }
+    }
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@           UPDATE           @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    public function closePost(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            "post_id" => "required|integer|exists:posts,id",
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Wrong parameters',
+                'errors' => Arr::flatten($validator->errors()->toArray()),
+            ]);
+        }
+
+        $validatedData = $validator->validated();
+
+
+        // Find the model instance by ID
+        $post = Post::find($validatedData['post_id']);
+
+        if (!$post) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Post not found',
+            ]);
+        }
+        Log::debug("2");
+
+
+        if ($post) {
+            $post->is_closed = !$post->is_closed;
+            $post->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => "تم تغيير حالة الإغلاق بنجاح",
             ]);
         }
     }

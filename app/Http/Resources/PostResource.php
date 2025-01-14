@@ -33,6 +33,7 @@ class PostResource extends JsonResource
             "is_special" => $this->is_special,
             "special_level" => $this->special_level,
             "is_favored" => (bool) $this->is_favored,
+            "is_closed" => (bool) $this->is_closed,
             //
             "user_id" => $this->user_id,
             "user_name" => $this->whenLoaded('user', function () {
