@@ -14,6 +14,8 @@ class ChatMessage extends Model
         "sender_id",
         "sender_name",
         "image",
+        "voice_message",
+        "voice_duration",
         "text",
         "is_read",
     ];

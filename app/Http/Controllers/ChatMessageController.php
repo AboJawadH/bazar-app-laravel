@@ -31,8 +31,9 @@ class ChatMessageController extends Controller
             'sender_name' => 'nullable|string',
             'text' => 'nullable|string',
             'image' => 'nullable|string', // Base64-encoded image
-            'voice_message' =>
-            'nullable|file|mimetypes:audio/mpeg,audio/wav,audio/x-m4a|max:10240',
+            'voice_message' => 'nullable|string',
+            'voice_duration' => 'nullable|string|regex:/^\d{1,2}:\d{2}$/',
+            // 'voice_message' => 'nullable|string',
             // 'nullable|file|mimetypes:audio/mpeg,audio/wav|max:10240', // New validation rule for voice message
         ]);
 
@@ -58,13 +59,23 @@ class ChatMessageController extends Controller
 
         // Step 3: Process the voice message if provided
         $voiceMessageUrl = null;
-        if ($request->hasFile('voice_message')) {
-            $voiceMessageFile = $request->file('voice_message');
-            $voiceMessageName = Str::uuid() . '.' . $voiceMessageFile->getClientOriginalExtension();
-            $voiceMessagePath = $voiceMessageFile->storeAs('chat-voice-messages', $voiceMessageName, 'public');
-            $voiceMessageUrl = asset('storage/' . $voiceMessagePath);
+        if ($request->filled('voice_message')) {
+            $base64Audio = $request->input('voice_message');
+
+            // Decode the Base64 string
+            $audioData = base64_decode($base64Audio);
+
+            // Generate a unique filename
+            $audioName = Str::uuid() . '.aac'; // or '.wav' depending on the file type
+
+            // Save the file to the public storage
+            Storage::disk('public')->put('chat-audio/' . $audioName, $audioData);
+
+            // Get the file URL
+            $voiceMessageUrl = asset('storage/chat-audio/' . $audioName);
         }
 
+        $voiceDuration = $validatedData['voice_duration'] ?? null;
         // Step 4: Create the chat message
         $message = ChatMessage::create([
             'chat_id' => $validatedData['chat_id'],
@@ -72,7 +83,8 @@ class ChatMessageController extends Controller
             'sender_name' => $validatedData['sender_name'],
             'text' => $validatedData['text'],
             'image' => $imageUrl,
-            'voice_message' => $voiceMessageUrl, // Save voice message URL
+            'voice_message' => $voiceMessageUrl,
+            'voice_duration' => $voiceDuration, // Save voice message URL
             'is_read' => false,
         ]);
 

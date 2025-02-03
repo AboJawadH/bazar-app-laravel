@@ -51,7 +51,7 @@ class ChatController extends Controller
         $chat = Chat::with([
             'messages' => function ($query) {
                 $query->orderBy('created_at', 'desc')
-                    ->limit(40);
+                    ->limit(100);
             },
             'userOne',
             'userTwo',
