@@ -62,6 +62,7 @@ class PostResource extends JsonResource
             "location_description" => $this->location_description,
             "longitude" => $this->longitude,
             "latitude" => $this->latitude,
+            "link" => $this->link,
             //
             "is_car_new" => $this->is_car_new,
             "is_gear_automatic" => $this->is_gear_automatic,

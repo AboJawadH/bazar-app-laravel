@@ -455,6 +455,7 @@ class PostController extends Controller
             'location_description' => 'nullable|string',
             'longitude' => 'nullable|string',
             'latitude' => 'nullable|string',
+            'link' => 'nullable|string',
             //
             'title' => 'nullable|string',
             'description' => 'nullable|string',
@@ -502,6 +503,7 @@ class PostController extends Controller
                 'location_description' => $validatedData['location_description'],
                 'latitude' => $validatedData['latitude'],
                 'longitude' => $validatedData['longitude'],
+                'link' => $validatedData['link'],
                 //
                 'title' => $validatedData['title'],
                 'description' => $validatedData['description'],
@@ -577,6 +579,7 @@ class PostController extends Controller
             'location_description' => 'nullable|string',
             'longitude' => 'nullable|string',
             'latitude' => 'nullable|string',
+            'link' => 'nullable|string',
             //
             'title' => 'nullable|string',
             'description' => 'nullable|string',
@@ -638,6 +641,7 @@ class PostController extends Controller
                 'location_description' => $validatedData['location_description'],
                 'latitude' => $validatedData['latitude'],
                 'longitude' => $validatedData['longitude'],
+                'link' => $validatedData['link'],
                 //
                 'title' => $validatedData['title'],
                 'description' => $validatedData['description'],

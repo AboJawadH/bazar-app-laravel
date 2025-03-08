@@ -33,6 +33,7 @@ class Post extends Model
         "location_text",
         "longitude",
         "latitude",
+        "link",
         //
         "is_car_new",
         "is_gear_automatic",
