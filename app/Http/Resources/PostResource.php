@@ -78,6 +78,8 @@ class PostResource extends JsonResource
             "number_of_toiltes" => $this->number_of_toiltes,
             "floor_number" => $this->floor_number,
             //
+            "status" => $this->status,
+            //
             "created_at" => $this->created_at,
             //
             'medias' => $this->whenLoaded('medias', fn() => $this->medias->isNotEmpty() ? PostMediaResource::collection($this->medias) : null),

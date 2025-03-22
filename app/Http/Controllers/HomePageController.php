@@ -95,6 +95,7 @@ class HomePageController extends Controller
             ->where('is_active', true)
             ->where('is_special', true)
             ->where('is_closed', false)
+            ->where("status","release")
             ->orderByDesc('created_at');
 
         // Conditional logic for section filter (Special Posts)
@@ -110,6 +111,7 @@ class HomePageController extends Controller
             ->where('is_active', true)
             ->where('is_special', false)
             ->where('is_closed', false)
+            ->where("status","release")
             ->orderByDesc('created_at');
 
         // Conditional logic for section filter (Recent Posts)

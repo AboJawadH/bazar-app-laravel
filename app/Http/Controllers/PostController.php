@@ -87,7 +87,9 @@ class PostController extends Controller
         //@@@@@@@@@@//
 
         Log::debug("1");
-        $posts = Post::with('medias', "section", "region", "user")->where('is_closed', false)
+        $posts = Post::with('medias', "section", "region", "user")
+            ->where('is_closed', false)
+
             ->when(!empty($sectionIds), function ($query) use ($sectionIds) {
                 return $query->whereIn('section_id', $sectionIds);
             });
@@ -192,12 +194,11 @@ class PostController extends Controller
         $validator = Validator::make($request->all(), [
             "section_id" => 'nullable|integer|exists:sections,id',
             'region_id' => 'nullable|integer|exists:regions,id',
-            //
             "search_word" => "nullable|string",
-            //
             "page" => 'nullable|integer',
-
+            "isPending" => 'nullable|boolean', // <-- Added this line
         ]);
+
         Log::debug($validator->errors());
 
         if ($validator->fails()) {
@@ -209,39 +210,40 @@ class PostController extends Controller
         }
 
         $validatedData = $validator->validated();
-        //@@@@@@@@@@//
-        //@@@@@@@@@@// BASE QUERY
-        //@@@@@@@@@@//
-        $posts = Post::with('medias', "user", "region", "section");
 
+        // BASE QUERY
+        $posts = Post::with('medias', "user", "region", "section");
 
         $query = $posts
             // SECTION
-            ->when(!is_null($validatedData["section_id"]), function ($query) use ($validatedData) {
+            ->when(!is_null($validatedData["section_id"] ?? null), function ($query) use ($validatedData) {
                 return $query->where('section_id', $validatedData["section_id"]);
             })
             // REGION
-            ->when(!is_null($validatedData["region_id"]), function ($query) use ($validatedData) {
+            ->when(!is_null($validatedData["region_id"] ?? null), function ($query) use ($validatedData) {
                 return $query->where('region_id', $validatedData["region_id"]);
             })
             // SEARCH
-            ->when(!is_null($validatedData["search_word"]), function ($query) use ($validatedData) {
-                return $query->where('title', 'LIKE', '%' . $validatedData["search_word"] . '%')
-                    ->orWhere('id', $validatedData["search_word"]);
+            ->when(!is_null($validatedData["search_word"] ?? null), function ($query) use ($validatedData) {
+                return $query->where(function ($q) use ($validatedData) {
+                    $q->where('title', 'LIKE', '%' . $validatedData["search_word"] . '%')
+                        ->orWhere('id', $validatedData["search_word"]);
+                });
+            })
+            // isPending
+            ->when(array_key_exists('isPending', $validatedData), function ($query) use ($validatedData) {
+                $status = $validatedData["isPending"] ? 'pending' : 'release';
+                return $query->where('status', $status);
             });
-
 
         $page = $request->input('page', 1);
 
         $posts = $query->orderByDesc("created_at")->paginate(10, ['*'], 'page', $page);
-        //@@@@@@@@@@//
-        //@@@@@@@@@@//
-        //@@@@@@@@@@//
+
         return response()->json([
             'status' => true,
             'message' => 'data fetched successfully',
             'posts' => PostResource::collection($posts),
-            // 'errors' => $validator->errors(),
         ]);
     }
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
@@ -330,7 +332,33 @@ class PostController extends Controller
             // 'errors' => $validator->errors(),
         ]);
     }
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@             GET            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    public function getPendingPosts()
+    {
+        Log::debug("Fetching Pending Posts");
 
+        //@@@@@@@@@@//
+        //@@@@@@@@@@// BASE QUERY
+        //@@@@@@@@@@//
+        $posts = Post::with('medias')
+            ->where('status', 'pending')
+            ->orderBy('created_at', 'desc')
+            ->take(30)
+            ->get();
+
+        //@@@@@@@@@@//
+        //@@@@@@@@@@//
+        //@@@@@@@@@@//
+        return response()->json([
+            'status' => true,
+            'message' => 'Pending posts fetched successfully',
+            'posts' => PostResource::collection($posts),
+        ]);
+    }
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@             GET            @@@@@@@@@@@@@@@@@@@@@@@@//
@@ -480,6 +508,8 @@ class PostController extends Controller
             'number_of_toiltes' => 'nullable|integer',
             'floor_number' => 'nullable|integer',
             //
+            'status' => 'nullable|string',
+            //
             'medias' => 'nullable|array',
         ]);
 
@@ -530,6 +560,8 @@ class PostController extends Controller
                 'number_of_rooms' => $validatedData['number_of_rooms'],
                 'number_of_toiltes' => $validatedData['number_of_toiltes'],
                 'floor_number' => $validatedData['floor_number'],
+                //
+                'status' => $validatedData['status'],
             ],
         );
 
@@ -604,6 +636,7 @@ class PostController extends Controller
             'number_of_toiltes' => 'nullable|integer',
             'floor_number' => 'nullable|integer',
             //
+            'status' => 'nullable|string',
             // 'medias' => 'nullable|array',
         ]);
 
@@ -668,6 +701,8 @@ class PostController extends Controller
                 'number_of_rooms' => $validatedData['number_of_rooms'],
                 'number_of_toiltes' => $validatedData['number_of_toiltes'],
                 'floor_number' => $validatedData['floor_number'],
+                //
+                'status' => $validatedData['status'],
             ],
         );
 
@@ -1023,6 +1058,44 @@ class PostController extends Controller
         }
     }
 
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@           UPDATE           @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    public function releasePost(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            "post_id" => "required|integer|exists:posts,id",
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Wrong parameters',
+                'errors' => Arr::flatten($validator->errors()->toArray()),
+            ]);
+        }
+
+        $validatedData = $validator->validated();
+
+        $post = Post::find($validatedData['post_id']);
+
+        if (!$post) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Post not found',
+            ]);
+        }
+
+        $post->status = 'release';
+        $post->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Post status updated to release successfully',
+        ]);
+    }
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
     //@@@@@@@@@@@@@@@@@@@@@@            FETCH           @@@@@@@@@@@@@@@@@@@@@@@@//

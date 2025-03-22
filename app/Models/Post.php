@@ -50,6 +50,8 @@ class Post extends Model
         "floor_number",
         //
         "search_word",
+        //
+        "status",
     ];
 
     //=======================//

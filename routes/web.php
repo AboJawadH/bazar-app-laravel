@@ -132,6 +132,7 @@ Route::post('post/fetch-posts-for-user', [PostController::class, "getPostsForUse
 // Route::post('post/fetch-posts-for-user', [PostController::class, "getPostsForUser"])->middleware(['user-or-admin']);
 Route::post('post/fetch-all-posts', [PostController::class, "getAllPosts"])->middleware(['maintenance.check']);
 Route::post('post/fetch-similar-posts', [PostController::class, "getSimilarPosts"])->middleware(['maintenance.check']);
+Route::post('post/fetch-pinding-posts', [PostController::class, "getPendingPosts"]);
 Route::post('post/fetch-one-post', [PostController::class, "getOnePost"])->middleware(['maintenance.check']);
 Route::post('post/store-new-medias', [PostController::class, "storeMedias"])->middleware(['auth:sanctum','maintenance.check']);
 Route::post('post/delete-one-media', [PostController::class, "deleteMedia"])->middleware(['auth:sanctum','maintenance.check']);
@@ -140,7 +141,8 @@ Route::post('post/update', [PostController::class, "update"])->middleware(['auth
 Route::post('post/delete', [PostController::class, "delete"])->middleware(['auth:sanctum','maintenance.check']);
 Route::post('post/favor-post', [PostController::class, "favorPost"])->middleware(['auth:sanctum','maintenance.check']);
 Route::post('post/fetch-favored-post', [PostController::class, "getFavoredPosts"])->middleware(['auth:sanctum','maintenance.check']);
-Route::post('post/special-post', [PostController::class, "specialPost"]);
+Route::post('post/special-post', [PostController::class, "specialPost"])->middleware(['auth:sanctum-admin']);
+Route::post('post/release-post', [PostController::class, "releasePost"])->middleware(['auth:sanctum-admin']);
 Route::post('post/close-post', [PostController::class, "closePost"])->middleware(['auth:sanctum','maintenance.check']);
 Route::post('post/fetch-special-posts', [PostController::class, "getSpeacialPosts"]);
 Route::post('post/fetch-recent-posts', [PostController::class, "getRecentPosts"]);

@@ -7,6 +7,11 @@ use Illuminate\Http\Request;
 
 class AppSettingController extends Controller
 {
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     public function createAppSetting(Request $request)
     {
         $validatedData =  $request->validate([
@@ -17,6 +22,7 @@ class AppSettingController extends Controller
             'font_type' => 'nullable|string',
             'day_color' => 'nullable|string',
             'night_color' => 'nullable|string',
+            'is_posts_release_automatic' => 'required|boolean',
         ]);
 
         // Ensure only one record exists
@@ -39,9 +45,12 @@ class AppSettingController extends Controller
         ], 200);
     }
 
-    /**
-     * Update an existing App Setting record.
-     */
+
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
     public function checkForUpdate(Request $request)
     {
         // Validate that the version number is provided
@@ -62,6 +71,7 @@ class AppSettingController extends Controller
 
         $latestVersion = $appSettings->build_number;
         $updateType = $appSettings->update_type; // 'mandatory' or 'optional'
+        $postsReleaseStatus = $appSettings->status; //
 
         // Compare versions
         if (version_compare($currentVersion, $latestVersion, '>=')) {
@@ -70,6 +80,7 @@ class AppSettingController extends Controller
                 'status' => true,
                 'update_type' => 'no_update',
                 'latest_version' => $latestVersion,
+                'postsReleaseStatus' => $postsReleaseStatus,
             ], 200);
         }
 
@@ -78,6 +89,14 @@ class AppSettingController extends Controller
             'status' => true,
             'update_type' => $updateType,
             'latest_version' => $latestVersion,
+            'postsReleaseStatus' => $postsReleaseStatus,
         ], 200);
     }
+
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@                            @@@@@@@@@@@@@@@@@@@@@@@@//
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+
 }

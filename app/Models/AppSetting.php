@@ -15,6 +15,7 @@ class AppSetting extends Model
 
     protected $casts = [
         'is_maintenance_on' => 'boolean',
+        'is_posts_release_automatic' => 'boolean',
     ];
 
 }
